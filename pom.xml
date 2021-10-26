@@ -38,8 +38,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.webjars.npm</groupId>
-			<artifactId>stimulus</artifactId>
-			<version>1.1.1</version>
+			<artifactId>hotwired__stimulus</artifactId>
+			<version>3.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>

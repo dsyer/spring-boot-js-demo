@@ -14,7 +14,7 @@
           "imports": {
             "jquery": "/webjars/jquery/dist/jquery.min.js",
             "bootstrap": "/webjars/bootstrap/dist/js/bootstrap.min.js",
-            "stimulus": "https://unpkg.com/@hotwired/stimulus/dist/stimulus.js"
+            "@hotwired/stimulus": "/webjars/hotwired__stimulus/dist/stimulus.js"
           }
         }
     </script>
@@ -39,18 +39,18 @@
     <script type="module">
           $.get("/user", function(data) {
             $("#user").html(data.name);
-            $(".unauthenticated").hide()
-            $(".authenticated").show()
+            $(".unauthenticated").hide();
+            $(".authenticated").show();
           });
     </script>
     <script type="module">
-        import { Application, Controller } from 'stimulus';
-        window.Stimulus = Application.start()
+        import { Application, Controller } from '@hotwired/stimulus';
+        window.Stimulus = Application.start();
     
         Stimulus.register("hello", class extends Controller {
             static targets = [ "name", "output" ]
             greet() {
-                this.outputTarget.textContent = `Hello, ${this.nameTarget.value}!`
+                this.outputTarget.textContent = `Hello, ${this.nameTarget.value}!`;
             }
         });
     </script>
