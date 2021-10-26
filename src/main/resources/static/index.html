@@ -13,7 +13,8 @@
         {
           "imports": {
             "jquery": "/webjars/jquery/dist/jquery.min.js",
-            "bootstrap": "/webjars/bootstrap/dist/js/bootstrap.min.js"
+            "bootstrap": "/webjars/bootstrap/dist/js/bootstrap.min.js",
+            "stimulus": "https://unpkg.com/@hotwired/stimulus/dist/stimulus.js"
           }
         }
     </script>
@@ -30,12 +31,28 @@
     <div class="container authenticated" style="display: none">
         Logged in as: <span id="user"></span>
     </div>
+    <div data-controller="hello">
+        <div data-hello-target="output">Placeholder</div>
+        <input data-hello-target="name" type="text">
+        <button data-action="click->hello#greet">Greet</button>
+    </div>
     <script type="module">
           $.get("/user", function(data) {
             $("#user").html(data.name);
             $(".unauthenticated").hide()
             $(".authenticated").show()
           });
+    </script>
+    <script type="module">
+        import { Application, Controller } from 'stimulus';
+        window.Stimulus = Application.start()
+    
+        Stimulus.register("hello", class extends Controller {
+            static targets = [ "name", "output" ]
+            greet() {
+                this.outputTarget.textContent = `Hello, ${this.nameTarget.value}!`
+            }
+        });
     </script>
 </body>
 </html>
