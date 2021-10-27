@@ -1,58 +1,71 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-    <meta charset="utf-8"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <title>Demo</title>
-    <meta name="description" content=""/>
-    <meta name="viewport" content="width=device-width"/>
-    <base href="/"/>
-    <link rel="stylesheet" type="text/css" href="/npm/bootstrap/dist/css/bootstrap.min.css"/>
-    <script async src="/npm/es-module-shims"></script>
-    <script type="importmap">
-        {
-          "imports": {
-            "jquery": "/npm/jquery",
-            "bootstrap": "/npm/bootstrap",
-            "@hotwired/stimulus": "/npm/hotwired__stimulus"
-          }
-        }
-    </script>
-    <script type="module">
-        import 'jquery';
-        import 'bootstrap';
-    </script>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<title>Demo</title>
+	<meta name="description" content="" />
+	<meta name="viewport" content="width=device-width" />
+	<base href="/" />
+	<link rel="stylesheet" type="text/css" href="/npm/bootstrap/dist/css/bootstrap.min.css" />
+	<script async src="/npm/es-module-shims"></script>
+	<script type="importmap">
+		{
+		  "imports": {
+			"jquery": "/npm/jquery",
+			"bootstrap": "/npm/bootstrap/dist/js/bootstrap.esm.js",
+			"@popperjs/core": "/npm/popperjs__core/lib/index.js",
+			"@hotwired/stimulus": "/npm/hotwired__stimulus"
+		  }
+		}
+	</script>
+	<script type="module">
+		import 'jquery';
+		import 'bootstrap';
+	</script>
 </head>
+
 <body>
-    <h1>Demo</h1>
-    <div class="container unauthenticated">
-        Unauthenticated
-    </div>
-    <div class="container authenticated" style="display: none">
-        Logged in as: <span id="user"></span>
-    </div>
-    <div data-controller="hello">
-        <div data-hello-target="output">Placeholder</div>
-        <input data-hello-target="name" type="text">
-        <button data-action="click->hello#greet">Greet</button>
-    </div>
-    <script type="module">
-          $.get("/user", function(data) {
-            $("#user").html(data.name);
-            $(".unauthenticated").hide();
-            $(".authenticated").show();
-          });
-    </script>
-    <script type="module">
-        import { Application, Controller } from '@hotwired/stimulus';
-        window.Stimulus = Application.start();
-    
-        Stimulus.register("hello", class extends Controller {
-            static targets = [ "name", "output" ]
-            greet() {
-                this.outputTarget.textContent = `Hello, ${this.nameTarget.value}!`;
-            }
-        });
-    </script>
+	<header>
+		<h1>Demo</h1>
+	</header>
+	<main>
+		<section>
+
+			<div class="container unauthenticated">
+				Unauthenticated
+			</div>
+			<div class="container authenticated" style="display: none">
+				Logged in as: <span id="user"></span>
+			</div>
+		</section>
+		<section>
+			<div class="container" data-controller="hello">
+				<div data-hello-target="output">Placeholder</div>
+				<input data-hello-target="name" type="text">
+				<button data-action="click->hello#greet">Greet</button>
+			</div>
+		</section>
+	</main>
+	<script type="module">
+		$.get("/user", function (data) {
+			$("#user").html(data.name);
+			$(".unauthenticated").hide();
+			$(".authenticated").show();
+		});
+	</script>
+	<script type="module">
+		import { Application, Controller } from '@hotwired/stimulus';
+		window.Stimulus = Application.start();
+
+		Stimulus.register("hello", class extends Controller {
+			static targets = ["name", "output"]
+			greet() {
+				this.outputTarget.textContent = `Hello, ${this.nameTarget.value}!`;
+			}
+		});
+	</script>
 </body>
+
 </html>

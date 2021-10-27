@@ -102,17 +102,16 @@ public class NpmResourceResolver extends AbstractResourceResolver {
 
 	@Nullable
 	protected String findWebJarResourcePath(String path) {
-		int startOffset = (path.startsWith("/") ? 1 : 0);
-		int endOffset = path.indexOf('/', 1);
-		String webjar = endOffset != -1 ? 
-			path.substring(startOffset, endOffset) : path;
-		if (endOffset == -1) {
-			path = "module.js";
-		}
-		if (webjar.length()>0) {	
+		String webjar = webjar(path);
+		if (webjar.length() > 0) {
+			if (path.equals(webjar)) {
+				path = "module.js";
+			} else if (path.startsWith(webjar)) {
+				path = path.substring(webjar.length() + 1);
+			}
 			String version = version(webjar);
 			if (version != null) {
-				String partialPath = path(webjar, version, path.substring(endOffset + 1));
+				String partialPath = path(webjar, version, path);
 				if (partialPath != null) {
 					String webJarPath = webjar + File.separator + version + File.separator + partialPath;
 					return webJarPath;
@@ -122,45 +121,61 @@ public class NpmResourceResolver extends AbstractResourceResolver {
 		return null;
 	}
 
+	private String webjar(String path) {
+		int startOffset = (path.startsWith("/") ? 1 : 0);
+		int endOffset = path.indexOf('/', 1);
+		String webjar = endOffset != -1 ? path.substring(startOffset, endOffset) : path;
+		return webjar;
+	}
+
 	private String path(String webjar, String version, String path) {
 		if (path.endsWith("module.js") || path.endsWith("main.js")) {
-			Resource resource = new ClassPathResource(RESOURCE_ROOT + webjar + File.separator + version + PACKAGE_JSON);
-			if (resource.isReadable()) {
-				try {
-					JsonParser parser = JsonParserFactory.getJsonParser();
-					Map<String, Object> map = parser
-							.parseMap(StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8));
-					if (!path.endsWith("main.js") && map.containsKey("module")) {
-						return (String) map.get("module");
-					}
-					if (!map.containsKey("main") && map.containsKey("jspm")) {
-						String stem = resolve(map, "jspm.directories.lib", "dist");
-						String main = resolve(map, "jspm.main", "dist");
-						return stem + File.separator + main + (main.endsWith(".js") ? "" : ".js");
-					}
-					return (String) map.get("main");
-				} catch (IOException e) {
-				}
+			String module = module(webjar, version, path);
+			if (module != null) {
+				return module;
 			}
 		}
-		if (new ClassPathResource(RESOURCE_ROOT + webjar + File.separator + version + File.separator + path).isReadable()) {
+		if (new ClassPathResource(RESOURCE_ROOT + webjar + File.separator + version + File.separator + path)
+				.isReadable()) {
 			return path;
 		}
 		return null;
 	}
 
-	private static String resolve(Map<String,Object> map, String path, String defaultValue) {
-		Map<String,Object> sub = map;
+	private String module(String webjar, String version, String path) {
+		Resource resource = new ClassPathResource(RESOURCE_ROOT + webjar + File.separator + version + PACKAGE_JSON);
+		if (resource.isReadable()) {
+			try {
+				JsonParser parser = JsonParserFactory.getJsonParser();
+				Map<String, Object> map = parser
+						.parseMap(StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8));
+				if (!path.endsWith("main.js") && map.containsKey("module")) {
+					return (String) map.get("module");
+				}
+				if (!map.containsKey("main") && map.containsKey("jspm")) {
+					String stem = resolve(map, "jspm.directories.lib", "dist");
+					String main = resolve(map, "jspm.main", "index.js");
+					return stem + File.separator + main + (main.endsWith(".js") ? "" : ".js");
+				}
+				return (String) map.get("main");
+			} catch (IOException e) {
+			}
+		}
+		return null;
+	}
+
+	private static String resolve(Map<String, Object> map, String path, String defaultValue) {
+		Map<String, Object> sub = map;
 		String[] elements = StringUtils.delimitedListToStringArray(path, ".");
-		for (int i=0; i<elements.length-1; i++) {
+		for (int i = 0; i < elements.length - 1; i++) {
 			@SuppressWarnings("unchecked")
-			Map<String,Object> tmp = (Map<String, Object>) sub.get(elements[i]);
+			Map<String, Object> tmp = (Map<String, Object>) sub.get(elements[i]);
 			sub = tmp;
 			if (sub == null) {
 				return defaultValue;
 			}
 		}
-		return (String) sub.getOrDefault(elements[elements.length-1], defaultValue);
+		return (String) sub.getOrDefault(elements[elements.length - 1], defaultValue);
 	}
 
 	private String version(String webjar) {
