@@ -23,45 +23,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import reactor.core.publisher.Mono;
-
 import org.springframework.boot.json.JsonParser;
 import org.springframework.boot.json.JsonParserFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.lang.Nullable;
-import org.springframework.util.ResourceUtils;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.resource.AbstractResourceResolver;
 import org.springframework.web.reactive.resource.ResourceResolverChain;
 import org.springframework.web.server.ServerWebExchange;
 
+import reactor.core.publisher.Mono;
+
 /**
  * A {@code ResourceResolver} that delegates to the chain to locate a resource
  * and then attempts to find a matching versioned resource contained in a WebJar
  * JAR file.
- *
- * <p>
- * This allows WebJars.org users to write version agnostic paths in their
- * templates, like {@code <script src="/jquery/jquery.min.js"/>}. This path will
- * be resolved to the unique version
- * {@code <script src="/jquery/1.2.0/jquery.min.js"/>}, which is a better fit
- * for HTTP caching and version management in applications.
- *
- * <p>
- * This also resolves resources for version agnostic HTTP requests
- * {@code "GET /jquery/jquery.min.js"}.
- *
- * <p>
- * This resolver requires the {@code org.webjars:webjars-locator-core} library
- * on the classpath and is automatically registered if that library is present.
- *
- * @author Rossen Stoyanchev
- * @author Brian Clozel
- * @since 5.0
- * @see <a href="https://www.webjars.org">webjars.org</a>
  */
 public class NpmResourceResolver extends AbstractResourceResolver {
 
@@ -104,11 +83,6 @@ public class NpmResourceResolver extends AbstractResourceResolver {
 	protected String findWebJarResourcePath(String path) {
 		String webjar = webjar(path);
 		if (webjar.length() > 0) {
-			if (path.equals(webjar)) {
-				path = "module.js";
-			} else if (path.startsWith(webjar)) {
-				path = path.substring(webjar.length() + 1);
-			}
 			String version = version(webjar);
 			if (version != null) {
 				String partialPath = path(webjar, version, path);
@@ -129,10 +103,19 @@ public class NpmResourceResolver extends AbstractResourceResolver {
 	}
 
 	private String path(String webjar, String version, String path) {
-		if (path.endsWith("module.js") || path.endsWith("main.js")) {
+		if (path.equals(webjar)) {
 			String module = module(webjar, version, path);
 			if (module != null) {
 				return module;
+			}
+		}
+		if (path.startsWith(webjar)) {
+			path = path.substring(webjar.length()+1);
+			if (path.equals("main.js")) {
+				String module = module(webjar, version, path);
+				if (module != null) {
+					return module;
+				}
 			}
 		}
 		if (new ClassPathResource(RESOURCE_ROOT + webjar + File.separator + version + File.separator + path)
@@ -149,7 +132,7 @@ public class NpmResourceResolver extends AbstractResourceResolver {
 				JsonParser parser = JsonParserFactory.getJsonParser();
 				Map<String, Object> map = parser
 						.parseMap(StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8));
-				if (!path.endsWith("main.js") && map.containsKey("module")) {
+				if (!path.equals("main.js") && map.containsKey("module")) {
 					return (String) map.get("module");
 				}
 				if (!map.containsKey("main") && map.containsKey("jspm")) {
