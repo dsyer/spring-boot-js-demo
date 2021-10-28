@@ -18,8 +18,8 @@ package com.example.jsdemo;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -28,21 +28,20 @@ import org.springframework.boot.json.JsonParserFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.reactive.resource.AbstractResourceResolver;
-import org.springframework.web.reactive.resource.ResourceResolverChain;
-import org.springframework.web.server.ServerWebExchange;
-
-import reactor.core.publisher.Mono;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * A {@code ResourceResolver} that delegates to the chain to locate a resource
- * and then attempts to find a matching versioned resource contained in a WebJar
- * JAR file.
+ * A {@code Controller} that redirects to a more precise webjars path.
  */
-public class NpmResourceResolver extends AbstractResourceResolver {
+@RestController
+public class NpmVersionResolver {
 
 	private static final String PROPERTIES_ROOT = "META-INF/maven/";
 	private static final String RESOURCE_ROOT = "META-INF/resources/webjars/";
@@ -51,43 +50,32 @@ public class NpmResourceResolver extends AbstractResourceResolver {
 	private static final String POM_PROPERTIES = "/pom.properties";
 	private static final String PACKAGE_JSON = "/package.json";
 
-	@Override
-	protected Mono<Resource> resolveResourceInternal(@Nullable ServerWebExchange exchange, String requestPath,
-			List<? extends Resource> locations, ResourceResolverChain chain) {
-
-		return chain.resolveResource(exchange, requestPath, locations).switchIfEmpty(Mono.defer(() -> {
-			String webJarsResourcePath = findWebJarResourcePath(requestPath);
-			if (webJarsResourcePath != null) {
-				return chain.resolveResource(exchange, webJarsResourcePath, locations);
-			} else {
-				return Mono.empty();
-			}
-		}));
+	@GetMapping("/npm/{webjar}")
+	public ResponseEntity<Void> module(@PathVariable String webjar) {
+		String path = findWebJarResourcePath(webjar, "/");
+		if (path == null) {
+			return ResponseEntity.notFound().build();
+		}
+		return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("/webjars/" + path)).build();
 	}
 
-	@Override
-	protected Mono<String> resolveUrlPathInternal(String resourceUrlPath, List<? extends Resource> locations,
-			ResourceResolverChain chain) {
-
-		return chain.resolveUrlPath(resourceUrlPath, locations).switchIfEmpty(Mono.defer(() -> {
-			String webJarResourcePath = findWebJarResourcePath(resourceUrlPath);
-			if (webJarResourcePath != null) {
-				return chain.resolveUrlPath(webJarResourcePath, locations);
-			} else {
-				return Mono.empty();
-			}
-		}));
+	@GetMapping("/npm/{webjar}/{*remainder}")
+	public ResponseEntity<Void> remainder(@PathVariable String webjar, @PathVariable String remainder) {
+		String path = findWebJarResourcePath(webjar, remainder);
+		if (path == null) {
+			return ResponseEntity.notFound().build();
+		}
+		return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("/webjars/" + path)).build();
 	}
 
 	@Nullable
-	protected String findWebJarResourcePath(String path) {
-		String webjar = webjar(path);
+	protected String findWebJarResourcePath(String webjar, String path) {
 		if (webjar.length() > 0) {
 			String version = version(webjar);
 			if (version != null) {
 				String partialPath = path(webjar, version, path);
 				if (partialPath != null) {
-					String webJarPath = webjar + File.separator + version + File.separator + partialPath;
+					String webJarPath = webjar + File.separator + version + partialPath;
 					return webJarPath;
 				}
 			}
@@ -95,30 +83,22 @@ public class NpmResourceResolver extends AbstractResourceResolver {
 		return null;
 	}
 
-	private String webjar(String path) {
-		int startOffset = (path.startsWith("/") ? 1 : 0);
-		int endOffset = path.indexOf('/', 1);
-		String webjar = endOffset != -1 ? path.substring(startOffset, endOffset) : path;
-		return webjar;
-	}
-
 	private String path(String webjar, String version, String path) {
-		if (path.equals(webjar)) {
+		if (path.equals("/")) {
+			String module = module(webjar, version, path);
+			if (module != null) {
+				return module;
+			} else {
+				return null;
+			}
+		}
+		if (path.equals("/main.js")) {
 			String module = module(webjar, version, path);
 			if (module != null) {
 				return module;
 			}
 		}
-		if (path.startsWith(webjar)) {
-			path = path.substring(webjar.length()+1);
-			if (path.equals("main.js")) {
-				String module = module(webjar, version, path);
-				if (module != null) {
-					return module;
-				}
-			}
-		}
-		if (new ClassPathResource(RESOURCE_ROOT + webjar + File.separator + version + File.separator + path)
+		if (new ClassPathResource(RESOURCE_ROOT + webjar + File.separator + version + path)
 				.isReadable()) {
 			return path;
 		}
@@ -132,15 +112,15 @@ public class NpmResourceResolver extends AbstractResourceResolver {
 				JsonParser parser = JsonParserFactory.getJsonParser();
 				Map<String, Object> map = parser
 						.parseMap(StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8));
-				if (!path.equals("main.js") && map.containsKey("module")) {
-					return (String) map.get("module");
+				if (!path.equals("/main.js") && map.containsKey("module")) {
+					return File.separator + (String) map.get("module");
 				}
 				if (!map.containsKey("main") && map.containsKey("jspm")) {
 					String stem = resolve(map, "jspm.directories.lib", "dist");
 					String main = resolve(map, "jspm.main", "index.js");
-					return stem + File.separator + main + (main.endsWith(".js") ? "" : ".js");
+					return File.separator + stem + File.separator + main + (main.endsWith(".js") ? "" : ".js");
 				}
-				return (String) map.get("main");
+				return File.separator + (String) map.get("main");
 			} catch (IOException e) {
 			}
 		}
