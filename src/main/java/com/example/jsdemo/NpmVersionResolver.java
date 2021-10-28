@@ -38,7 +38,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * A {@code Controller} that redirects to a more precise webjars path.
+ * A {@code Controller} that redirects to a more precise webjars path that can
+ * be handled by the resource resolver.
  */
 @RestController
 public class NpmVersionResolver {
@@ -98,8 +99,7 @@ public class NpmVersionResolver {
 				return module;
 			}
 		}
-		if (new ClassPathResource(RESOURCE_ROOT + webjar + File.separator + version + path)
-				.isReadable()) {
+		if (new ClassPathResource(RESOURCE_ROOT + webjar + File.separator + version + path).isReadable()) {
 			return path;
 		}
 		return null;
