@@ -13,7 +13,6 @@
 	<script type="importmap">
 		{
 			"imports": {
-				"jquery": "/npm/jquery",
 				"bootstrap": "/npm/bootstrap",
 				"@popperjs/core": "/npm/popperjs__core",
 				"@hotwired/stimulus": "/npm/hotwired__stimulus"
@@ -21,7 +20,6 @@
 		}
 	</script>
 	<script type="module">
-		import 'jquery';
 		import 'bootstrap';
 	</script>
 </head>
@@ -32,15 +30,10 @@
 	</header>
 	<main>
 		<section>
-			<div class="container unauthenticated">
-				Unauthenticated
-			</div>
-			<div class="container authenticated" style="display: none">
-				Logged in as: <span id="user"></span>
-			</div>
-		</section>
-		<section>
 			<div class="container" data-controller="hello">
+				<div data-hello-target="auth">
+					Unauthenticated
+				</div>
 				<div data-hello-target="output">Placeholder</div>
 				<input data-hello-target="name" type="text">
 				<button data-action="click->hello#greet">Greet</button>
@@ -48,21 +41,22 @@
 		</section>
 	</main>
 	<script type="module">
-		$.get("/user", function (data) {
-			$("#user").html(data.name);
-			$(".unauthenticated").hide();
-			$(".authenticated").show();
-		});
-	</script>
-	<script type="module">
 		import { Application, Controller } from '@hotwired/stimulus';
 		window.Stimulus = Application.start();
 
 		Stimulus.register("hello", class extends Controller {
-			static targets = ["name", "output"]
+			static targets = ["name", "output", "auth"]
+			initialize() {
+				let hello = this;
+				fetch("/user").then(response => {
+					response.json().then(data => {
+						hello.authTarget.textContent = `Logged in as: ${data.name}`;
+					});
+				});
+			}
 			greet() {
 				this.outputTarget.textContent = `Hello, ${this.nameTarget.value}!`;
-			}
+			};
 		});
 	</script>
 </body>
