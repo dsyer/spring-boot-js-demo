@@ -15,7 +15,8 @@
 			"imports": {
 				"bootstrap": "/npm/bootstrap",
 				"@popperjs/core": "/npm/popperjs__core",
-				"@hotwired/stimulus": "/npm/hotwired__stimulus"
+				"@hotwired/stimulus": "/npm/hotwired__stimulus",
+				"@hotwired/turbo": "/npm/hotwired__turbo"
 			}
 		}
 	</script>
@@ -39,7 +40,16 @@
 				<button data-action="click->hello#greet">Greet</button>
 			</div>
 		</section>
+		<section>
+			<div class="container" >
+				<div id="load"></div>
+			</div>
+		</section>
 	</main>
+	<script type="module">
+		import '@hotwired/turbo';
+		Turbo.connectStreamSource(new EventSource("/stream"))
+	</script>
 	<script type="module">
 		import { Application, Controller } from '@hotwired/stimulus';
 		window.Stimulus = Application.start();
