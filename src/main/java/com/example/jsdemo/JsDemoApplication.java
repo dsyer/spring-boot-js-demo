@@ -7,8 +7,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.MediaType;
 import org.springframework.nativex.hint.NativeHint;
 import org.springframework.nativex.hint.ResourceHint;
+import org.springframework.ui.Model;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -27,8 +32,8 @@ public class JsDemoApplication {
 	}
 
 	@PostMapping("/greet")
-	public Mono<String> greet(ServerWebExchange request) {
-		return request.getFormData().map(map -> "Hello " + map.getFirst("value") + "!");
+	public String greet(@ModelAttribute Greeting values) {
+		return "Hello " + values.getValue() + "!";
 	}
 
 	@GetMapping("/time")
@@ -43,6 +48,18 @@ public class JsDemoApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(JsDemoApplication.class, args);
+	}
+
+	static class Greeting {
+		private String value;
+
+		public String getValue() {
+			return value;
+		}
+
+		public void setValue(String value) {
+			this.value = value;
+		}
 	}
 
 }
