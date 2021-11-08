@@ -15,13 +15,13 @@
 			"imports": {
 				"bootstrap": "/npm/bootstrap",
 				"@popperjs/core": "/npm/popperjs__core",
-				"@hotwired/stimulus": "/npm/hotwired__stimulus",
-				"@hotwired/turbo": "/npm/hotwired__turbo"
+				"htmx": "/npm/htmx.org"
 			}
 		}
 	</script>
 	<script type="module">
 		import 'bootstrap';
+		import 'htmx';
 	</script>
 </head>
 
@@ -31,44 +31,21 @@
 	</header>
 	<main>
 		<section>
-			<div class="container" data-controller="hello">
-				<div data-hello-target="auth">
+			<div class="container">
+				<div id="auth" hx-trigger="load" hx-get="/user">
 					Unauthenticated
 				</div>
-				<div data-hello-target="output">Placeholder</div>
-				<input data-hello-target="name" type="text">
-				<button data-action="click->hello#greet">Greet</button>
+				<div id="greeting">Placeholder</div>
+				<input id="name" name="value" type="text"/>
+				<button hx-post="/greet" hx-target="#greeting" hx-include="#name">Greet</button>
 			</div>
 		</section>
 		<section>
-			<div class="container" >
-				<div id="load"></div>
+			<div class="container" hx-sse="connect:/stream">
+				<div id="load" hx-trigger="sse:message" hx-get="/time"></div>
 			</div>
 		</section>
 	</main>
-	<script type="module">
-		import '@hotwired/turbo';
-		Turbo.connectStreamSource(new EventSource("/stream"))
-	</script>
-	<script type="module">
-		import { Application, Controller } from '@hotwired/stimulus';
-		window.Stimulus = Application.start();
-
-		Stimulus.register("hello", class extends Controller {
-			static targets = ["name", "output", "auth"]
-			initialize() {
-				let hello = this;
-				fetch("/user").then(response => {
-					response.json().then(data => {
-						hello.authTarget.textContent = `Logged in as: ${data.name}`;
-					});
-				});
-			}
-			greet() {
-				this.outputTarget.textContent = `Hello, ${this.nameTarget.value}!`;
-			};
-		});
-	</script>
 </body>
 
 </html>
