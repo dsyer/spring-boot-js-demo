@@ -27,6 +27,10 @@
 			<artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mustache</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.webjars.npm</groupId>
 			<artifactId>es-module-shims</artifactId>
 			<version>1.3.0</version>
