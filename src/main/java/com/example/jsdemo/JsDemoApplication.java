@@ -6,7 +6,6 @@ import java.time.Duration;
 import org.reactivestreams.Publisher;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.core.MethodParameter;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -109,16 +108,15 @@ class CompositeViewRenderer implements HandlerResultHandler {
 				.getMethodAnnotation(RequestMapping.class).produces();
 		MediaType type = methodAnnotation.length > 0 ? MediaType.valueOf(methodAnnotation[0]) : MediaType.TEXT_HTML;
 		exchange.getResponse().getHeaders().setContentType(type);
-		boolean sse = MediaType.TEXT_EVENT_STREAM.includes(type);
 		@SuppressWarnings("unchecked")
 		Flux<Rendering> renderings = Flux.from((Publisher<Rendering>) result.getReturnValue());
 		final ServerWebExchange wrapper = new ExchangeWrapper(exchange);
-		return render(wrapper, renderings, sse).then(Mono.defer(
+		return render(wrapper, renderings).then(Mono.defer(
 				() -> exchange.getResponse().writeAndFlushWith(((ResponseWrapper) wrapper.getResponse()).getBody())));
 	}
 
-	private Mono<Void> render(ServerWebExchange exchange, Flux<Rendering> renderings, boolean sse) {
-		return renderings.map(rendering -> render(exchange, rendering, sse))
+	private Mono<Void> render(ServerWebExchange exchange, Flux<Rendering> renderings) {
+		return renderings.map(rendering -> render(exchange, rendering))
 				.flatMap(thing -> thing.concatWith(closer(exchange))).then();
 	}
 
@@ -128,14 +126,13 @@ class CompositeViewRenderer implements HandlerResultHandler {
 		return exchange.getResponse().writeWith(Mono.just(buffer));
 	}
 
-	private Mono<Void> render(ServerWebExchange exchange, Rendering rendering, boolean sse) {
+	private Mono<Void> render(ServerWebExchange exchange, Rendering rendering) {
 		Mono<View> view = null;
 		if (rendering.view() instanceof View) {
 			view = Mono.just((View) rendering.view());
 		} else {
 			view = resolver.resolveViewName((String) rendering.view(), exchange.getLocaleContext().getLocale());
 		}
-		// TODO: something with sse to insert data: tags
 		return view.flatMap(actual -> actual.render(rendering.modelAttributes(), null, exchange));
 	}
 
