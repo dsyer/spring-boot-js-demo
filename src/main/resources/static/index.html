@@ -42,7 +42,7 @@
 		</section>
 		<section>
 			<div class="container" hx-sse="connect:/stream">
-				<div id="load" hx-trigger="sse:message" hx-get="/time"></div>
+				<div id="load" hx-sse="swap:message"></div>
 			</div>
 		</section>
 	</main>
