@@ -19,9 +19,13 @@ package com.example.jsdemo;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.json.JsonParser;
 import org.springframework.boot.json.JsonParserFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -43,6 +47,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class NpmVersionResolver {
 
+	private static final Log logger = LogFactory.getLog(NpmVersionResolver.class);
+
+	private static final Set<String> ALERTS = new HashSet<>();
+
 	private static final String PROPERTIES_ROOT = "META-INF/maven/";
 	private static final String RESOURCE_ROOT = "META-INF/resources/webjars/";
 	private static final String NPM = "org.webjars.npm/";
@@ -55,9 +63,6 @@ public class NpmVersionResolver {
 		String path = findWebJarResourcePath(webjar, "/");
 		if (path == null) {
 			path = findUnpkgPath(webjar, "");
-			if (path == null) {
-				return ResponseEntity.notFound().build();
-			}
 			return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(path)).build();
 		}
 		return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("/webjars/" + path)).build();
@@ -67,17 +72,18 @@ public class NpmVersionResolver {
 	public ResponseEntity<Void> remainder(@PathVariable String webjar, @PathVariable String remainder) {
 		if (webjar.startsWith("@")) {
 			int index = remainder.indexOf("/");
-			String path = index<0 ? remainder : remainder.substring(0, index);
+			String path = index < 0 ? remainder : remainder.substring(0, index);
 			webjar = webjar.substring(1) + "__" + path;
-			if (index < 0 || index == remainder.length()-1) {
+			if (index < 0 || index == remainder.length() - 1) {
 				return module(webjar);
 			}
 			remainder = remainder.substring(index + 1);
 		}
 		String path = findWebJarResourcePath(webjar, remainder);
 		if (path == null) {
-			path = findUnpkgPath(webjar, remainder);
-			if (path == null) {
+			if (version(webjar) == null) {
+				path = findUnpkgPath(webjar, remainder);
+			} else {
 				return ResponseEntity.notFound().build();
 			}
 			return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(path)).build();
@@ -93,6 +99,10 @@ public class NpmVersionResolver {
 		}
 		if (webjar.contains("__")) {
 			webjar = "@" + webjar.replace("__", "/");
+		}
+		if (logger.isInfoEnabled() && !ALERTS.contains(webjar)) {
+			ALERTS.add(webjar);
+			logger.info("Resolving webjar to unpkg.com: " + webjar);
 		}
 		return "https://unpkg.com/" + webjar + remainder;
 	}
