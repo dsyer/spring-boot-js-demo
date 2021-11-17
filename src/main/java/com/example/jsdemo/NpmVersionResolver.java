@@ -16,7 +16,6 @@
 
 package com.example.jsdemo;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -76,7 +75,7 @@ public class NpmVersionResolver {
 			if (version != null) {
 				String partialPath = path(webjar, version, path);
 				if (partialPath != null) {
-					String webJarPath = webjar + File.separator + version + partialPath;
+					String webJarPath = webjar + "/" + version + partialPath;
 					return webJarPath;
 				}
 			}
@@ -99,28 +98,28 @@ public class NpmVersionResolver {
 				return module;
 			}
 		}
-		if (new ClassPathResource(RESOURCE_ROOT + webjar + File.separator + version + path).isReadable()) {
+		if (new ClassPathResource(RESOURCE_ROOT + webjar + "/" + version + path).isReadable()) {
 			return path;
 		}
 		return null;
 	}
 
 	private String module(String webjar, String version, String path) {
-		Resource resource = new ClassPathResource(RESOURCE_ROOT + webjar + File.separator + version + PACKAGE_JSON);
+		Resource resource = new ClassPathResource(RESOURCE_ROOT + webjar + "/" + version + PACKAGE_JSON);
 		if (resource.isReadable()) {
 			try {
 				JsonParser parser = JsonParserFactory.getJsonParser();
 				Map<String, Object> map = parser
 						.parseMap(StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8));
 				if (!path.equals("/main.js") && map.containsKey("module")) {
-					return File.separator + (String) map.get("module");
+					return "/" + (String) map.get("module");
 				}
 				if (!map.containsKey("main") && map.containsKey("jspm")) {
 					String stem = resolve(map, "jspm.directories.lib", "dist");
 					String main = resolve(map, "jspm.main", "index.js");
-					return File.separator + stem + File.separator + main + (main.endsWith(".js") ? "" : ".js");
+					return "/" + stem + "/" + main + (main.endsWith(".js") ? "" : ".js");
 				}
-				return File.separator + (String) map.get("main");
+				return "/" + (String) map.get("main");
 			} catch (IOException e) {
 			}
 		}
