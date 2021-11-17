@@ -61,6 +61,15 @@ public class NpmVersionResolver {
 
 	@GetMapping("/npm/{webjar}/{*remainder}")
 	public ResponseEntity<Void> remainder(@PathVariable String webjar, @PathVariable String remainder) {
+		if (webjar.startsWith("@")) {
+			int index = remainder.indexOf("/");
+			String path = index<0 ? remainder : remainder.substring(0, index);
+			webjar = webjar.substring(1) + "__" + path;
+			if (index < 0 || index == remainder.length()-1) {
+				return module(webjar);
+			}
+			remainder = remainder.substring(index + 1);
+		}
 		String path = findWebJarResourcePath(webjar, remainder);
 		if (path == null) {
 			return ResponseEntity.notFound().build();

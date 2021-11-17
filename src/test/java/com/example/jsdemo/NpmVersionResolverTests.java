@@ -16,6 +16,7 @@ public class NpmVersionResolverTests {
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
 		String location = response.getHeaders().getFirst("location");
 		assertThat(location).startsWith("/webjars");
+		assertThat(location).matches("/webjars/bootstrap/[0-9\\.]*/.*");
 		assertThat(location).contains("/dist/js/bootstrap.esm.js");
 	}
 
@@ -38,6 +39,16 @@ public class NpmVersionResolverTests {
 		String location = response.getHeaders().getFirst("location");
 		assertThat(location).startsWith("/webjars");
 		assertThat(location).contains("/dist/css/bootstrap.min.css");
+	}
+
+	@Test
+	void resolvesAtModule() {
+		ResponseEntity<Void> response = resolver.remainder("@popperjs", "core");
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+		String location = response.getHeaders().getFirst("location");
+		assertThat(location).startsWith("/webjars");
+		assertThat(location).contains("/popperjs__core");
+		assertThat(location).contains("/lib/index.js");
 	}
 
 }
