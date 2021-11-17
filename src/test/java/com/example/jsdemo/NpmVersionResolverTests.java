@@ -21,12 +21,6 @@ public class NpmVersionResolverTests {
 	}
 
 	@Test
-	void notFoundGarbagePath() {
-		ResponseEntity<Void> response = resolver.module("bootstrap/garbage.js");
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-	}
-
-	@Test
 	void notFoundInWebjar() {
 		ResponseEntity<Void> response = resolver.remainder("bootstrap", "notthere.js");
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
@@ -49,6 +43,30 @@ public class NpmVersionResolverTests {
 		assertThat(location).startsWith("/webjars");
 		assertThat(location).contains("/popperjs__core");
 		assertThat(location).contains("/lib/index.js");
+	}
+
+	@Test
+	void resolvesUnpkgModuleWhenWebjarNotAvailable() {
+		ResponseEntity<Void> response = resolver.module("jquery");
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+		String location = response.getHeaders().getFirst("location");
+		assertThat(location).isEqualTo("https://unpkg.com/jquery");
+	}
+
+	@Test
+	void resolvesUnpkgAtModuleWhenWebjarNotAvailable() {
+		ResponseEntity<Void> response = resolver.module("@hotwired/stimulus");
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+		String location = response.getHeaders().getFirst("location");
+		assertThat(location).isEqualTo("https://unpkg.com/@hotwired/stimulus");
+	}
+
+	@Test
+	void resolvesUnpkgPathWhenWebjarNotAvailable() {
+		ResponseEntity<Void> response = resolver.module("jquery/index.js");
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+		String location = response.getHeaders().getFirst("location");
+		assertThat(location).isEqualTo("https://unpkg.com/jquery/index.js");
 	}
 
 }

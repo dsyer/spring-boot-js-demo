@@ -54,7 +54,11 @@ public class NpmVersionResolver {
 	public ResponseEntity<Void> module(@PathVariable String webjar) {
 		String path = findWebJarResourcePath(webjar, "/");
 		if (path == null) {
-			return ResponseEntity.notFound().build();
+			path = findUnpkgPath(webjar, "");
+			if (path == null) {
+				return ResponseEntity.notFound().build();
+			}
+			return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(path)).build();
 		}
 		return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("/webjars/" + path)).build();
 	}
@@ -72,9 +76,25 @@ public class NpmVersionResolver {
 		}
 		String path = findWebJarResourcePath(webjar, remainder);
 		if (path == null) {
-			return ResponseEntity.notFound().build();
+			path = findUnpkgPath(webjar, remainder);
+			if (path == null) {
+				return ResponseEntity.notFound().build();
+			}
+			return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(path)).build();
 		}
 		return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("/webjars/" + path)).build();
+	}
+
+	private String findUnpkgPath(String webjar, String remainder) {
+		if (!StringUtils.hasText(remainder)) {
+			remainder = "";
+		} else if (!remainder.startsWith("/")) {
+			remainder = "/" + remainder;
+		}
+		if (webjar.contains("__")) {
+			webjar = "@" + webjar.replace("__", "/");
+		}
+		return "https://unpkg.com/" + webjar + remainder;
 	}
 
 	@Nullable
