@@ -28,23 +28,29 @@
 <body>
 	<header>
 		<h1>Demo</h1>
+		<nav class="nav nav-tabs">
+			<a class="nav-link active" data-bs-toggle="tab" data-bs-target="#message" href="#">Message</button>
+				<a class="nav-link" data-bs-toggle="tab" data-bs-target="#stream" href="#">Stream</button>
+		</nav>
 	</header>
 	<main>
-		<section>
-			<div class="container">
-				<div id="auth" hx-trigger="load" hx-get="/user">
-					Unauthenticated
+		<div class="tab-content">
+			<div class="tab-pane fade show active" id="message" role="tabpanel">
+				<div class="container">
+					<div id="auth" hx-trigger="load" hx-get="/user">
+						Unauthenticated
+					</div>
+					<div id="greeting">Placeholder</div>
+					<input id="name" name="value" type="text" />
+					<button hx-post="/greet" hx-target="#greeting" hx-include="#name">Greet</button>
 				</div>
-				<div id="greeting">Placeholder</div>
-				<input id="name" name="value" type="text"/>
-				<button hx-post="/greet" hx-target="#greeting" hx-include="#name">Greet</button>
 			</div>
-		</section>
-		<section>
-			<div class="container" hx-sse="connect:/stream">
-				<div id="load" hx-sse="swap:message"></div>
+			<div class="tab-pane fade" id="stream" role="tabpanel">
+				<div class="container" hx-sse="connect:/stream">
+					<div id="load" hx-sse="swap:message"></div>
+				</div>
 			</div>
-		</section>
+		</div>
 	</main>
 </body>
 
