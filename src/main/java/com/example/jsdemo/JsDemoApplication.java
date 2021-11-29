@@ -1,6 +1,8 @@
 package com.example.jsdemo;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,8 +24,10 @@ import reactor.core.publisher.Flux;
 public class JsDemoApplication {
 
 	@GetMapping("/user")
-	public String user() {
-		return "Fred";
+	public Map<String, Object> user() {
+		Map<String, Object> map = new HashMap<>();
+		map.put("name", "Fred");
+		return map;
 	}
 
 	@PostMapping("/greet")

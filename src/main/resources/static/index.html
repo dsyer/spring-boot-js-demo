@@ -15,13 +15,13 @@
 			"imports": {
 				"bootstrap": "/npm/bootstrap",
 				"@popperjs/core": "/npm/@popperjs/core",
-				"htmx": "/npm/htmx.org"
+				"@hotwired/stimulus": "/npm/hotwired__stimulus",
+				"@hotwired/turbo": "/npm/hotwired__turbo"
 			}
 		}
 	</script>
 	<script type="module">
 		import 'bootstrap';
-		import 'htmx';
 	</script>
 </head>
 
@@ -34,24 +34,50 @@
 		</nav>
 	</header>
 	<main>
+		<br/>
 		<div class="tab-content">
 			<div class="tab-pane fade show active" id="message" role="tabpanel">
-				<div class="container">
-					<div id="auth" hx-trigger="load" hx-get="/user">
+				<div class="container" data-controller="hello">
+					<div id="auth" data-hello-target="auth">
 						Unauthenticated
 					</div>
-					<div id="greeting">Placeholder</div>
-					<input id="name" name="value" type="text" />
-					<button hx-post="/greet" hx-target="#greeting" hx-include="#name">Greet</button>
+					<div id="greeting" data-hello-target="output">Placeholder</div>
+					<input id="name" name="value" type="text" data-hello-target="name"/>
+					<button data-action="click->hello#greet">Greet</button>
 				</div>
 			</div>
 			<div class="tab-pane fade" id="stream" role="tabpanel">
-				<div class="container" hx-sse="connect:/stream">
-					<div id="load" hx-sse="swap:message"></div>
+				<div class="container">
+					<div id="load"></div>
 				</div>
 			</div>
 		</div>
 	</main>
+
+	<script type="module">
+		import '@hotwired/turbo';
+		Turbo.connectStreamSource(new EventSource("/stream"))
+	</script>
+	<script type="module">
+		import { Application, Controller } from '@hotwired/stimulus';
+		window.Stimulus = Application.start();
+
+		Stimulus.register("hello", class extends Controller {
+			static targets = ["name", "output", "auth"]
+			initialize() {
+				let hello = this;
+				fetch("/user").then(response => {
+					response.json().then(data => {
+						hello.authTarget.textContent = `Logged in as: ${data.name}`;
+					});
+				});
+			}
+			greet() {
+				this.outputTarget.textContent = `Hello, ${this.nameTarget.value}!`;
+			};
+		});
+	</script>
+
 </body>
 
 </html>
