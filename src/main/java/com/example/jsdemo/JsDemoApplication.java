@@ -1,17 +1,26 @@
 package com.example.jsdemo;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.samskivert.mustache.Mustache.Compiler;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.mustache.MustacheProperties;
+import org.springframework.boot.web.reactive.result.view.MustacheViewResolver;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.Ordered;
 import org.springframework.http.MediaType;
 import org.springframework.nativex.hint.NativeHint;
 import org.springframework.nativex.hint.ResourceHint;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.reactive.result.view.Rendering;
 
@@ -39,7 +48,7 @@ public class JsDemoApplication {
 				.modelAttribute("time", System.currentTimeMillis()).build());
 	}
 
-	@GetMapping(path = "/test")
+	@PostMapping(path = "/test", produces = "text/vnd.turbo-stream.html")
 	public String test(Model model) {
 		model.addAttribute("value", "Test " + (count++));
 		return "test";
@@ -61,4 +70,18 @@ public class JsDemoApplication {
 		}
 	}
 
+
+	@Bean
+	@ConditionalOnMissingBean
+	MustacheViewResolver mustacheViewResolver(Compiler mustacheCompiler, MustacheProperties mustache) {
+		MustacheViewResolver resolver = new MustacheViewResolver(mustacheCompiler);
+		resolver.setPrefix(mustache.getPrefix());
+		resolver.setSuffix(mustache.getSuffix());
+		resolver.setViewNames(mustache.getViewNames());
+		resolver.setRequestContextAttribute(mustache.getRequestContextAttribute());
+		resolver.setCharset(mustache.getCharsetName());
+		resolver.setOrder(Ordered.LOWEST_PRECEDENCE - 10);
+		resolver.setSupportedMediaTypes(Arrays.asList(MediaType.TEXT_HTML, MediaType.valueOf("text/vnd.turbo-stream.html")));
+		return resolver;
+	}
 }

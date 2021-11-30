@@ -26,8 +26,12 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.mustache.MustacheProperties;
 import org.springframework.boot.json.JsonParser;
 import org.springframework.boot.json.JsonParserFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.Ordered;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
