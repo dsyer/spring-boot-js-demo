@@ -22,6 +22,7 @@
 	</script>
 	<script type="module">
 		import 'bootstrap';
+		import '@hotwired/turbo';
 	</script>
 </head>
 
@@ -31,6 +32,7 @@
 		<nav class="nav nav-tabs">
 			<a class="nav-link active" data-bs-toggle="tab" data-bs-target="#message" href="#">Message</a>
 			<a class="nav-link" data-bs-toggle="tab" data-bs-target="#stream" href="#">Stream</a>
+			<a class="nav-link" data-bs-toggle="tab" data-bs-target="#test" href="#">Test</a>
 		</nav>
 	</header>
 	<main>
@@ -51,11 +53,17 @@
 					<div id="load"></div>
 				</div>
 			</div>
+			<div class="tab-pane fade" id="test" role="tabpanel">
+				<turbo-frame id="turbo">	
+					<div class="container" id="frame">
+						<a href="/test" data-turbo-frame="turbo">Fetch Content</a>
+					</div>
+				</turbo-frame>
+			</div>
 		</div>
 	</main>
 
 	<script type="module">
-		import '@hotwired/turbo';
 		Turbo.connectStreamSource(new EventSource("/stream"))
 	</script>
 	<script type="module">

@@ -9,35 +9,28 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.MediaType;
 import org.springframework.nativex.hint.NativeHint;
 import org.springframework.nativex.hint.ResourceHint;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.reactive.result.view.Rendering;
 
 import reactor.core.publisher.Flux;
 
 @SpringBootApplication
-@RestController
+@Controller
 @NativeHint(resources = @ResourceHint(patterns = { "^META-INF/resources/webjars/.*",
 		"^META-INF/maven/org.webjars.npm/.*/pom.properties$" }))
 public class JsDemoApplication {
 
+	private int count = 0;
+
 	@GetMapping("/user")
+	@ResponseBody
 	public Map<String, Object> user() {
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", "Fred");
 		return map;
-	}
-
-	@PostMapping("/greet")
-	public String greet(@ModelAttribute Greeting values) {
-		return "Hello " + values.getValue() + "!";
-	}
-
-	@GetMapping("/time")
-	public String time() {
-		return "Time: " + System.currentTimeMillis();
 	}
 
 	@GetMapping(path = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -47,9 +40,9 @@ public class JsDemoApplication {
 	}
 
 	@GetMapping(path = "/test")
-	public Flux<Rendering> test() {
-		return Flux.just(Rendering.view("test").modelAttribute("value", "Test").build(),
-				Rendering.view("test").modelAttribute("value", "Foo").build());
+	public String test(Model model) {
+		model.addAttribute("value", "Test " + (count++));
+		return "test";
 	}
 
 	public static void main(String[] args) {

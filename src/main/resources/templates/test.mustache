@@ -1,1 +1,6 @@
-<div>Hi {{value}}!</div>
+<turbo-frame id="turbo">
+	<div class="container" id="frame">
+		<div>Hi {{value}}!</div>
+		<a href="/test" data-turbo-frame="turbo">Fetch Content</a>
+	</div>
+</turbo-frame>
