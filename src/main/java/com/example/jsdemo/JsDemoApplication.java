@@ -3,6 +3,7 @@ package com.example.jsdemo;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.samskivert.mustache.Mustache.Compiler;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.reactive.result.view.Rendering;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @SpringBootApplication
 @Controller
@@ -40,6 +42,12 @@ public class JsDemoApplication {
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", "Fred");
 		return map;
+	}
+
+	@GetMapping("/pops")
+	@ResponseBody
+	public Mono<Chart> bar() {
+		return Mono.just(new Chart());
 	}
 
 	@GetMapping(path = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -58,6 +66,26 @@ public class JsDemoApplication {
 		SpringApplication.run(JsDemoApplication.class, args);
 	}
 
+	public static class Chart {
+		public Data data = new Data();
+		public Options options = new Options();
+
+		public static class Data {
+			public List<String> labels = Arrays.asList("Africa", "Asia", "Europe", "Latin America", "North America");
+			public List<Map<String, Object>> datasets = Arrays.asList(Map.of("label", "Population (millions)", //
+					"backgroundColor", Arrays.asList("#3e95cd", "#8e5ea2", "#3cba9f", "#e8c3b9", "#c45850"), //
+					"data", Arrays.asList(2478, 5267, 734, 784, 433)));
+		};
+
+		public static class Options {
+			public Map<String, Object> plugins = new HashMap<>();
+			{
+				plugins.put("legend", Map.of("display", false));
+				plugins.put("title", Map.of("display", true, "text", "Predicted world population (millions) in 2050"));
+			}
+		};
+	}
+
 	static class Greeting {
 		private String value;
 
@@ -70,7 +98,6 @@ public class JsDemoApplication {
 		}
 	}
 
-
 	@Bean
 	@ConditionalOnMissingBean
 	MustacheViewResolver mustacheViewResolver(Compiler mustacheCompiler, MustacheProperties mustache) {
@@ -81,7 +108,8 @@ public class JsDemoApplication {
 		resolver.setRequestContextAttribute(mustache.getRequestContextAttribute());
 		resolver.setCharset(mustache.getCharsetName());
 		resolver.setOrder(Ordered.LOWEST_PRECEDENCE - 10);
-		resolver.setSupportedMediaTypes(Arrays.asList(MediaType.TEXT_HTML, MediaType.valueOf("text/vnd.turbo-stream.html")));
+		resolver.setSupportedMediaTypes(
+				Arrays.asList(MediaType.TEXT_HTML, MediaType.valueOf("text/vnd.turbo-stream.html")));
 		return resolver;
 	}
 }

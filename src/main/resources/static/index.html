@@ -16,7 +16,8 @@
 				"bootstrap": "/npm/bootstrap",
 				"@popperjs/core": "/npm/@popperjs/core",
 				"@hotwired/stimulus": "/npm/hotwired__stimulus",
-				"@hotwired/turbo": "/npm/hotwired__turbo"
+				"@hotwired/turbo": "/npm/hotwired__turbo",
+				"chart.js": "/npm/chart.js"
 			}
 		}
 	</script>
@@ -33,10 +34,11 @@
 			<a class="nav-link active" data-bs-toggle="tab" data-bs-target="#message" href="#">Message</a>
 			<a class="nav-link" data-bs-toggle="tab" data-bs-target="#stream" href="#">Stream</a>
 			<a class="nav-link" data-bs-toggle="tab" data-bs-target="#test" href="#">Test</a>
+			<a class="nav-link" data-bs-toggle="tab" data-bs-target="#chart" href="#">Chart</a>
 		</nav>
 	</header>
 	<main>
-		<br/>
+		<br />
 		<div class="tab-content">
 			<div class="tab-pane fade show active" id="message" role="tabpanel">
 				<div class="container" data-controller="hello">
@@ -44,8 +46,8 @@
 						Unauthenticated
 					</div>
 					<div id="greeting" data-hello-target="output">Placeholder</div>
-					<input id="name" name="value" type="text" data-hello-target="name"/>
-					<button data-action="click->hello#greet">Greet</button>
+					<input id="name" name="value" type="text" data-hello-target="name" />
+					<button class="btn btn-primary" data-action="click->hello#greet">Greet</button>
 				</div>
 			</div>
 			<div class="tab-pane fade" id="stream" role="tabpanel">
@@ -54,7 +56,7 @@
 				</div>
 			</div>
 			<div class="tab-pane fade" id="test" role="tabpanel">
-				<turbo-frame id="turbo">	
+				<turbo-frame id="turbo">
 					<div class="container" id="frame">
 						<div id="hi"></div>
 						<form action="/test" method="post">
@@ -62,6 +64,16 @@
 						</form>
 					</div>
 				</turbo-frame>
+			</div>
+			<div class="tab-pane fade" id="chart" role="tabpanel" data-controller="chart">
+				<div class="container">
+					<canvas data-chart-target="canvas"></canvas>
+				</div>
+				<div class="container">
+					<button class="btn btn-primary" data-action="click->chart#clear">Clear</button>
+					<button class="btn btn-primary" data-action="click->chart#bar">Bar</button>
+					<button class="btn btn-primary" data-action="click->chart#pie">Pie</button>
+				</div>
 			</div>
 		</div>
 	</main>
@@ -85,6 +97,39 @@
 			}
 			greet() {
 				this.outputTarget.textContent = `Hello, ${this.nameTarget.value}!`;
+			};
+		});
+
+		import { Chart, BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend } from 'chart.js';
+		Chart.register(BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend);
+
+		Stimulus.register("chart", class extends Controller {
+			static targets = ["canvas"]
+			clear() {
+				if (this.active) {
+					this.active.destroy();
+				}
+			};
+			bar() {
+				let chart = this;
+				this.clear();
+				fetch("/pops").then(response => {
+					response.json().then(data => {
+						data.type = "bar";
+						chart.active = new Chart(chart.canvasTarget, data);
+					});
+				});;
+			};
+			pie() {
+				let chart = this;
+				this.clear();
+				fetch("/pops").then(response => {
+					response.json().then(data => {
+						data.type = "pie";
+						data.options.plugins.legend.display = true;
+						chart.active = new Chart(chart.canvasTarget, data);
+					});
+				});;
 			};
 		});
 	</script>
