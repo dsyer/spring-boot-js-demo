@@ -16,6 +16,7 @@
 
 package com.example.jsdemo;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -104,11 +105,23 @@ public class NpmVersionResolver {
 		if (webjar.contains("__")) {
 			webjar = "@" + webjar.replace("__", "/");
 		}
+		String local = findLocalPath(webjar+remainder);
+		if (local != null) {
+			
+		}
 		if (logger.isInfoEnabled() && !ALERTS.contains(webjar)) {
 			ALERTS.add(webjar);
 			logger.info("Resolving webjar to unpkg.com: " + webjar);
 		}
 		return "https://unpkg.com/" + webjar + remainder;
+	}
+
+	private String findLocalPath(String path) {
+		File module = new File("node_modules", path);
+		if (module.exists() && module.isDirectory()) {
+			return "/" + module.getPath();
+		}
+		return null;
 	}
 
 	@Nullable

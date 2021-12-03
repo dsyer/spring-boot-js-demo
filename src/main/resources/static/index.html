@@ -9,6 +9,7 @@
 	<meta name="viewport" content="width=device-width" />
 	<base href="/" />
 	<link rel="stylesheet" type="text/css" href="/npm/bootstrap/dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" type="text/css" href="/npm/@springio/utils/style.css" />
 	<script async src="/npm/es-module-shims"></script>
 	<script type="importmap">
 		{
@@ -17,13 +18,15 @@
 				"@popperjs/core": "/npm/@popperjs/core",
 				"@hotwired/stimulus": "/npm/hotwired__stimulus",
 				"@hotwired/turbo": "/npm/hotwired__turbo",
-				"chart.js": "/npm/chart.js"
+				"chart.js": "/npm/chart.js",
+				"@springio/utils": "/node_modules/@springio/utils/index.js"
 			}
 		}
 	</script>
 	<script type="module">
 		import 'bootstrap';
 		import '@hotwired/turbo';
+		import '@springio/utils';
 	</script>
 </head>
 
@@ -34,6 +37,7 @@
 			<a class="nav-link active" data-bs-toggle="tab" data-bs-target="#message" href="#">Message</a>
 			<a class="nav-link" data-bs-toggle="tab" data-bs-target="#stream" href="#">Stream</a>
 			<a class="nav-link" data-bs-toggle="tab" data-bs-target="#test" href="#">Test</a>
+			<a class="nav-link" data-bs-toggle="tab" data-bs-target="#docs" href="#">Docs</a>
 			<a class="nav-link" data-bs-toggle="tab" data-bs-target="#chart" href="#">Chart</a>
 		</nav>
 	</header>
@@ -65,6 +69,18 @@
 					</div>
 				</turbo-frame>
 			</div>
+			<div class="tab-pane fade" id="docs" role="tabpanel">
+				<div class="container" title="Content">
+					<div class="content primary"><div class="title">One</div><div class="content">Some content</div></div>
+					<div class="content secondary"><div class="title">Two</div><div class="content">Secondary</div></div>
+					<div class="content secondary"><div class="title">Three</div><div class="content">Third option</div></div>
+				</div>
+				<div class="container" title="Another">
+					<div class="content primary"><div class="title">One</div><div class="content">Some more content</div></div>
+					<div class="content secondary"><div class="title">Two</div><div class="content">Secondary stuff</div></div>
+					<div class="content secondary"><div class="title">Three</div><div class="content">Third option again</div></div>
+				</div>
+			</div>
 			<div class="tab-pane fade" id="chart" role="tabpanel" data-controller="chart">
 				<div class="container">
 					<canvas data-chart-target="canvas"></canvas>
@@ -73,6 +89,7 @@
 					<button class="btn btn-primary" data-action="click->chart#clear">Clear</button>
 					<button class="btn btn-primary" data-action="click->chart#bar">Bar</button>
 					<button class="btn btn-primary" data-action="click->chart#pie">Pie</button>
+					<button class="btn btn-primary" data-action="click->chart#doughnut">Doughnut</button>
 				</div>
 			</div>
 		</div>
@@ -85,6 +102,9 @@
 		import { Application, Controller } from '@hotwired/stimulus';
 		window.Stimulus = Application.start();
 
+		import { Chart, BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend } from 'chart.js';
+		Chart.register(BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend);
+
 		Stimulus.register("hello", class extends Controller {
 			static targets = ["name", "output", "auth"]
 			initialize() {
@@ -92,44 +112,40 @@
 				fetch("/user").then(response => {
 					response.json().then(data => {
 						hello.authTarget.textContent = `Logged in as: ${data.name}`;
-					});
-				});
-			}
+					});	
+				});	
+			}	
 			greet() {
-				this.outputTarget.textContent = `Hello, ${this.nameTarget.value}!`;
+				this.outputTarget.textContent = `Hello, ${this.nameTarget.value}!`;	
 			};
-		});
-
-		import { Chart, BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend } from 'chart.js';
-		Chart.register(BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend);
+		});	
 
 		Stimulus.register("chart", class extends Controller {
 			static targets = ["canvas"]
+			pops(type, legend) {
+				let chart = this;
+				this.clear();
+				fetch("/pops").then(response => {
+					response.json().then(data => {
+						data.type = type;
+						data.options.plugins.legend.display = legend;
+						chart.active = new Chart(chart.canvasTarget, data);
+					});
+				});;
+			};
 			clear() {
 				if (this.active) {
 					this.active.destroy();
 				}
 			};
 			bar() {
-				let chart = this;
-				this.clear();
-				fetch("/pops").then(response => {
-					response.json().then(data => {
-						data.type = "bar";
-						chart.active = new Chart(chart.canvasTarget, data);
-					});
-				});;
+				this.pops("bar", false);
 			};
 			pie() {
-				let chart = this;
-				this.clear();
-				fetch("/pops").then(response => {
-					response.json().then(data => {
-						data.type = "pie";
-						data.options.plugins.legend.display = true;
-						chart.active = new Chart(chart.canvasTarget, data);
-					});
-				});;
+				this.pops("pie", true);
+			};
+			doughnut() {
+				this.pops("doughnut", true);
 			};
 		});
 	</script>

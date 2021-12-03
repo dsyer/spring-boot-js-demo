@@ -23,6 +23,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.reactive.config.ResourceHandlerRegistry;
+import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.reactive.result.view.Rendering;
 
 import reactor.core.publisher.Flux;
@@ -112,4 +114,15 @@ public class JsDemoApplication {
 				Arrays.asList(MediaType.TEXT_HTML, MediaType.valueOf("text/vnd.turbo-stream.html")));
 		return resolver;
 	}
+
+	@Bean
+	public WebFluxConfigurer configurer() {
+		return new WebFluxConfigurer() {
+			@Override
+			public void addResourceHandlers(ResourceHandlerRegistry registry) {
+				registry.addResourceHandler("/node_modules/**").addResourceLocations("file:node_modules/");
+			}
+		};
+	}
+
 }
