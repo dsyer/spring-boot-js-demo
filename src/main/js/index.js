@@ -1,3 +1,6 @@
+import './style.scss';
+import '@springio/utils/style.css';
+
 import 'bootstrap';
 import '@hotwired/turbo';
 import '@springio/utils';
