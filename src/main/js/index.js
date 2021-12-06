@@ -2,7 +2,7 @@ import './style.scss';
 import '@springio/utils/style.css';
 
 import 'bootstrap';
-import '@hotwired/turbo';
+import * as Turbo from '@hotwired/turbo';
 import '@springio/utils';
 import { Application, Controller } from '@hotwired/stimulus';
 import { Chart, BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend } from 'chart.js';

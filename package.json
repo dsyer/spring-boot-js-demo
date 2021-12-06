@@ -5,19 +5,28 @@
         "@hotwired/stimulus": "^3.0.1",
         "@hotwired/turbo": "^7.1.0",
         "@popperjs/core": "^2.10.1",
+        "@springio/utils": "^1.0.4",
         "bootstrap": "^5.1.3",
         "chart.js": "^3.6.0",
-        "@springio/utils": "^1.0.4",
-        "es-module-shims": "^1.3.0"
+        "es-module-shims": "^1.3.0",
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2"
     },
     "devDependencies": {
+        "@babel/core": "^7.16.0",
+        "@babel/preset-env": "^7.16.0",
+        "@babel/preset-react": "^7.16.0",
+        "@rollup/plugin-babel": "^5.3.0",
         "rollup": "^2.60.2",
-        "rollup-plugin-node-resolve": "^2.0.0",
-        "rollup-plugin-postcss": "^0.2.0",
+        "@rollup/plugin-node-resolve": "^13.0.6",
+        "rollup-plugin-postcss": "^4.0.2",
+        "@rollup/plugin-replace": "^3.0.0",
         "rollup-plugin-scss": "^3.0.0",
+        "@rollup/plugin-commonjs": "^21.0.1",
         "sass": "^1.44.0"
     },
     "scripts": {
-        "build": "rollup -c"
+        "build": "rollup -c",
+        "babel": "babel src/main/js/components.js -o target/components.js"
     }
 }
