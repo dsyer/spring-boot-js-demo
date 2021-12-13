@@ -25,8 +25,11 @@
 	</script>
 	<script type="module">
 		import 'bootstrap';
-		import '@hotwired/turbo';
 		import '@springio/utils';
+	</script>
+	<script type="module">
+		import * as Turbo from '@hotwired/turbo';
+		Turbo.connectStreamSource(new EventSource("/stream"))
 	</script>
 </head>
 
@@ -95,9 +98,6 @@
 		</div>
 	</main>
 
-	<script type="module">
-		Turbo.connectStreamSource(new EventSource("/stream"))
-	</script>
 	<script type="module">
 		import { Application, Controller } from '@hotwired/stimulus';
 		window.Stimulus = Application.start();
