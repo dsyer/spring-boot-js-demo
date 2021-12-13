@@ -1,15 +1,265 @@
-These samples explore the different options that Spring Boot developers have for using Javascript and CSS on the client (browser) side of their application. Part of the plan is to explore some Javascript libraries that play well in the traditional server-side-rendered world of Spring web applications. Those libraries tend to have a light touch for the application developer, in the sense that they allow you to completely avoid Javascript, but still have nice a progressive "modern" UI. We also look at some more "pure" Javascript tools and frameworks. It's kind of a spectrum, so here is a list of the sample apps, in rough order of low to high Javascript content:
+These samples explore the different options that Spring Boot developers have for using Javascript and CSS on the client (browser) side of their application. Part of the plan is to explore some Javascript libraries that play well in the traditional server-side-rendered world of Spring web applications. Those libraries tend to have a light touch for the application developer, in the sense that they allow you to completely avoid Javascript, but still have nice a progressive "modern" UI. We also look at some more "pure" Javascript tools and frameworks. It's kind of a spectrum, so as a TL;DR here is a list of the sample apps, in rough order of low to high Javascript content:
 
-* `htmx`: https://htmx.org[HTMX]
+* `htmx`: https://htmx.org[HTMX] is a library that allows you to access modern browser features directly from HTML, rather than using javascript. It is very easy to use and well suited to server-side rendering because it works by replacing sections of the DOM directly from remote responses. It seems to be well used and appreciated by the https://www.python.org/[Python] community.
 
-* `turbo`: https://turbo.hotwired.dev/[Hotwired] (Turbo and Stimulus)
+* `turbo`: https://turbo.hotwired.dev/[Hotwired] (Turbo and Stimulus). Turbo is a bit like HTMX. It is widely used and supported well in https://rubyonrails.org/[Ruby on Rails]. Stimulus is a lightweight library that can be used to implement tiny bits of logic that prefer to live on the client.
 
-* `vue`: https://vuejs.org[Vue]
+* `vue`: https://vuejs.org[Vue] is also very lightweight and describes itself as "progressive" and "incrementally adoptable". It is versatile in the sense that you can use a very small amount of Javascript to do something nice, or you can push on through and use it as a full-blown framework.
 
-* `react-webjars`: uses the https://reactjs.org[React] framework, but without a Javascript build or bundler. React is nice in that way because it allows you to dip your toes in and try it, or just use it in a few small areas, without it taking over the whole source tree.
+* `react-webjars`: uses the https://reactjs.org[React] framework, but without a Javascript build or bundler. React is nice in that way because, like Vue, it allows you to just use it in a few small areas, without it taking over the whole source tree.
 
 * `nodejs`: like the `turbo` sample but using https://nodejs.org[Node.js] to build and bundle the scripts, instead of https://webjars.org[Webjars]. If you get serious about React, you will probably end up doing this, or something like it. The aim here is to use Maven to drive the build, at least optionally, so that the normal Spring Boot application development process works. Gradle would work the same.
 
 * `react`: is the `react-webjars` sample, but with the Javascript build steps from the `nodejs` sample.
 
 If you want to know more about React and Spring there is a https://spring.io/guides/tutorials/react-and-spring-data-rest/[tutorial on the Spring website]. There is also content on https://angular.io[Angular] via another https://spring.io/guides/tutorials/spring-security-and-angular-js/[tutorial on the Spring website] and the related getting started content https://github.com/dsyer/spring-boot-angular[here].
+
+## Getting Started
+
+All the samples can be built and run with standard Spring Boot processes (e.g. see https://spring.io/guides/gs/spring-boot/[this getting started guide]). The Maven wrapper is in the parent directory so from each sample on the command line you can `../mvnw spring-boot:run` to run the apps or `../mvnw package` to get an executable JAR. E.g.
+
+```
+$ cd htmx
+$ ../mvnw package
+$ java -jar target/js-demo-htmx-0.0.1.jar
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::            (v2.6.0)
+
+2021-12-08 08:50:30.517  INFO 2385363 --- [           main] com.example.jsdemo.JsDemoApplication     : Starting JsDemoApplication using Java 11.0.7 on tower with PID 2385363 (/home/dsyer/dev/demo/workspace-daily/js-demo/target/classes started by dsyer in /home/dsyer/dev/demo/workspace-daily/js-demo)
+2021-12-08 08:50:30.519  INFO 2385363 --- [           main] com.example.jsdemo.JsDemoApplication     : No active profile set, falling back to default profiles: default
+2021-12-08 08:50:31.501 DEBUG 2385363 --- [           main] s.w.r.r.m.a.RequestMappingHandlerMapping : 6 mappings in 'requestMappingHandlerMapping'
+2021-12-08 08:50:31.519 DEBUG 2385363 --- [           main] o.s.w.r.handler.SimpleUrlHandlerMapping  : Patterns [/webjars/**, /**, /node_modules/**] in 'resourceHandlerMapping'
+2021-12-08 08:50:31.641 DEBUG 2385363 --- [           main] o.s.w.r.r.m.a.ControllerMethodResolver   : ControllerAdvice beans: none
+2021-12-08 08:50:31.666 DEBUG 2385363 --- [           main] o.s.w.s.adapter.HttpWebHandlerAdapter    : enableLoggingRequestDetails='false': form data and headers will be masked to prevent unsafe logging of potentially sensitive data
+2021-12-08 08:50:31.829  INFO 2385363 --- [           main] o.s.b.web.embedded.netty.NettyWebServer  : Netty started on port 8080
+2021-12-08 08:50:31.841  INFO 2385363 --- [           main] com.example.jsdemo.JsDemoApplication     : Started JsDemoApplication in 0.97 seconds (JVM running for 1.209)
+```
+
+## Narrowing the Choices
+
+Browser application development is a huge landscape of ever-changing options and choices. It would be impossible to present all those options in one coherent picture, so we have intentionally limited the scope of tools and frameworks we look at. We start with a bias of wanting to find something that works with a light touch, or at least incrementally adoptable. There is also the previously mentioned bias towards libraries that work well with server-side renderers - those that deal with fragments and subtrees of HTML. We have used Javascript https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules[ESM] wherever possible, since most browsers now support that, but equally most libraries that publish a module to `import` also have an equivalent bundle you can `require`.
+
+Many of the samples use https://webjars.org[Webjars] to deliver the Javascript (and CSS) assets to the client. This is very easy and sensible for an application with a Java backend. Not all the samples use Webjars though, and it wouldn't be hard to convert them to either use a CDN (like https://unpkg.com[unpkg.com] or https://jsdeliver.com[jsdelivr.com]) or a build time Node.js bundler. The samples here that do have a bundler use https://rollupjs.org/guide/en/[Rollup], but you could just as well use https://webpack.js.org/[Webpack], for instance. They also use straight https://www.npmjs.com/[NPM] and not https://classic.yarnpkg.com/[Yarn] or https://gulpjs.com/[Gulp], which are both popular choices and could very well be used instead. All the samples use https://getbootstrap.com/[Bootstrap] for CSS, but other choices are available.
+
+There are also choices that can be made on the server side. We have used https://docs.spring.io/spring-framework/docs/current/reference/html/web-reactive.html#spring-webflux[Spring Webflux] but https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#spring-web[Spring MVC] would work identically. We have used Maven as a build tool, but using Gradle it would be easy to achieve the same goals. All the samples actually have a static home page (not even rendered as a template), but they all have some dynamic content, and we have chosen https://github.com/samskivert/jmustache[JMustache] for that. https://www.thymeleaf.org/[Thymeleaf] (and other templating engines) would work just as well. In fact Thymeleaf has built-in support for fragments and that can be quite useful when you are updating parts of a page dynamically. You could do that same with Mustache (probably) with a bit of work, but we didn't need it in these samples, so there wasn't any point.
+
+## Create a New Application
+
+To get started with Spring Boot and client-side development, let's start at the beginning, with an empty app from https://start.spring.io[Spring Initializr]. You can go to the website and download a project with web dependencies (select Webflux or WebMVC) and open it up in your IDE. To generate a project from the command line you can use `curl`, starting form an empty directory:
+
+```
+$ curl https://start.spring.io/starter.tgz -d dependencies=webflux -d name=js-demo | tar -xzvf -
+```
+
+We can add a really basic static home page at `src/main/resources/static/index.html`:
+
+```
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<title>Demo</title>
+	<meta name="description" content="" />
+	<meta name="viewport" content="width=device-width" />
+	<base href="/" />
+</head>
+
+<body>
+	<header>
+		<h1>Demo</h1>
+	</header>
+	<main>
+		<div class="container">
+			<div id="greeting">Hello World</div>
+		</div>
+	</main>
+
+</body>
+
+</html>
+```
+
+and then run the app:
+
+```
+$ ./mvnw package
+$ java target/js-demo-0.0.1-SNAPSHOT.jar
+```
+
+and you can see the result on http://localhost:8080[localhost:8080].
+
+### Webjars
+
+To start building client-side features, let's add some CSS out of the box from Bootstrap. We could use a CDN, like this for example in `index.html`:
+
+```
+...
+<head>
+	...
+	<link rel="stylesheet" type="text/css" href="https://unpkgs.com/bootstrap/dist/css/bootstrap.min.css" />
+</head>
+...
+```
+
+or we could use Webjars by packaging the Bootstrap libraries in our JAR file. To do that we need to add a couple of dependencies to the `pom.xml`:
+
+```
+<dependency>
+	<groupId>org.webjars</groupId>
+	<artifactId>webjars-locator-core</artifactId>
+</dependency>
+<dependency>
+	<groupId>org.webjars.npm</groupId>
+	<artifactId>bootstrap</artifactId>
+	<version>5.1.3</version>
+</dependency>
+```
+
+and then in `index.html` instead of the CDN we use a resource path inside the application:
+
+```
+...
+<head>
+	...
+	<link rel="stylesheet" type="text/css" href="/webjars/bootstrap/dist/css/bootstrap.min.css" />
+</head>
+...
+```
+
+If you rebuild and/or re-run the application you will see nice vanilla Bootstrap styles instead of the boring default browser versions. Spring Boot uses the `webjars-locator-core` to locate the version and exact location of the resource in the classpath. The browser just sucks that stylesheet straight down the HTTP straw.
+
+### Show Me Some Javascript
+
+Bootstrap is also a Javascript library, so we can start to use it more fully by taking advantage of that aspect. We can add the library in `index.html` like this:
+
+```
+...
+<head>
+...
+	<script src="/webjars/bootstrap/dist/js/bootstrap.min.js"></script>
+</head>
+...
+```
+
+It doesn't do anything visible yet, but you can verify that it is loaded by the browser using the devtools view (F12 in Chrome or Firefox).
+
+We said in the introduction that we would use ESM modules where available, and Bootstrap has one, so let's get that working. Replace the `<script>` tag in `index.html` with this:
+
+```
+<script type="importmap">
+	{
+		"imports": {
+			"bootstrap": "/webjars/bootstrap/dist/js/bootstrap.esm.min.js"
+		}
+	}
+</script>
+<script type="module">
+	import 'bootstrap';
+</script>
+```
+
+There are two parts to this: an "importmap" and a "module". The import map is a feature of the browser allowing you to refer to ESM modules by name and mapping that to a resource. If you run the app now and load it in the browser there should be an error in the console because the ESM bundle of Bootstrap has a dependency on https://popper.js.org/[PopperJS]:
+
+```
+Uncaught TypeError: Failed to resolve module specifier "@popperjs/core". Relative references must start with either "/", "./", or "../".
+```
+
+PopperJS is no a mandatory transitive dependency of the Bootstrap Webjar, so we have to include that as well in `pom.xml`:
+
+```
+<dependency>
+	<groupId>org.webjars.npm</groupId>
+	<artifactId>popperjs__core</artifactId>
+	<version>2.10.1</version>
+</dependency>
+```
+
+and then it can be added to the import map:
+
+```
+<script type="importmap">
+	{
+		"imports": {
+			"bootstrap": "/webjars/bootstrap/dist/js/bootstrap.esm.min.js"
+			"@popperjs/core": "/webjars/popperjs__core/lib/index.js",
+		}
+	}
+</script>
+```
+
+and this will fix the console error.
+
+## Normalizing Resource Paths
+
+The resource paths inside a Webjar (e.g. `/bootstrap/dist/js/bootstrap.esm.min.js`) are not standardized - that is there is no naming convention that allows you to guess the location of the ESM module inside a Webjar, or an NPM module, which amounts to the same thing. But there are some conventions in NPM modules that make it possible to automate, namely most modules have a `package.json` with a "module" field, e.g. from Bootstrap:
+
+```
+{
+  "name": "bootstrap",
+  "description": "The most popular front-end framework for developing responsive, mobile first projects on the web.",
+  "version": "5.1.3",
+...
+  "module": "dist/js/bootstrap.esm.js",
+...
+}
+```
+
+CDNs like unpkg.com make use of this information, so you can use them when you know only the ESM module name. E.g. this should work:
+
+```
+<script type="importmap">
+	{
+		"imports": {
+			"bootstrap": "https://unpkg.com/bootstrap"
+			"@popperjs/core": "https://unpkg.com/@popperjs/core",
+		}
+	}
+</script>
+```
+
+It would be nice to be able to do the same with `/webjars` resource paths. That's what the `NpmVersionResolver` does in all the samples. You don't need it if you don't use Webjars and you can use a CDN, and you don't need it if you don't mind manually opening up all the `package.json` files and looking for the module path. But it's nice to not have to think about that. There's a https://github.com/spring-projects/spring-boot/issues/28715[feature request] asking for this feature to be included in Spring Boot.
+
+NOTE: Most modern browsers support modules and module maps. Those that don't can be used in our app at the cost of adding a https://www.npmjs.com/package/es-module-shims[shim library]. It is already included in the samples.
+
+### Adding Tabs
+
+We might as well use the Bootstrap styles now we have it all working. So how about some tabs with content and a button or two to press? Sounds good. First the `<header/>` with the tab links in `index.html`:
+
+```
+<header>
+	<h1>Demo</h1>
+	<nav class="nav nav-tabs">
+		<a class="nav-link active" data-bs-toggle="tab" data-bs-target="#message" href="#">Message</a>
+		<a class="nav-link" data-bs-toggle="tab" data-bs-target="#stream" href="#">Stream</a>
+	</nav>
+</header>
+```
+
+The second (default inactive) tab is called "stream" because that's going to be part of the HTMX sample. The tab contents look like this in the `<main/>` section:
+
+```
+<main>
+	<div class="tab-content">
+		<div class="tab-pane fade show active" id="message" role="tabpanel">
+			<div class="container">
+				<div id="greeting">Hello World!</div>
+			</div>
+		</div>
+		<div class="tab-pane fade" id="stream" role="tabpanel">
+			<div class="container">
+				<div id="load">Nothing here yet...</div>
+			</div>
+		</div>
+	</div>
+</main>
+```
+
+Note how one of the tabs is "active" and both have ids that match up with the `data-bs-target` attributes in the header. That's why we need some Javascript - to handle the click events on the tabs so that the correct content is revealed or hidden. The https://getbootstrap.com/docs/5.1/getting-started/introduction/[Bootstrap docs] have loads of examples of different tab styles and layouts. One nice thing about the basic features here is that they automatically render nicely as drop downs on a narrow device like a mobile phone.
