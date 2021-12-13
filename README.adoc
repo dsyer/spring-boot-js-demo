@@ -1,0 +1,15 @@
+These samples explore the different options that Spring Boot developers have for using Javascript and CSS on the client (browser) side of their application. Part of the plan is to explore some Javascript libraries that play well in the traditional server-side-rendered world of Spring web applications. Those libraries tend to have a light touch for the application developer, in the sense that they allow you to completely avoid Javascript, but still have nice a progressive "modern" UI. We also look at some more "pure" Javascript tools and frameworks. It's kind of a spectrum, so here is a list of the sample apps, in rough order of low to high Javascript content:
+
+* `htmx`: https://htmx.org[HTMX]
+
+* `turbo`: https://turbo.hotwired.dev/[Hotwired] (Turbo and Stimulus)
+
+* `vue`: https://vuejs.org[Vue]
+
+* `react-webjars`: uses the https://reactjs.org[React] framework, but without a Javascript build or bundler. React is nice in that way because it allows you to dip your toes in and try it, or just use it in a few small areas, without it taking over the whole source tree.
+
+* `nodejs`: like the `turbo` sample but using https://nodejs.org[Node.js] to build and bundle the scripts, instead of https://webjars.org[Webjars]. If you get serious about React, you will probably end up doing this, or something like it. The aim here is to use Maven to drive the build, at least optionally, so that the normal Spring Boot application development process works. Gradle would work the same.
+
+* `react`: is the `react-webjars` sample, but with the Javascript build steps from the `nodejs` sample.
+
+If you want to know more about React and Spring there is a https://spring.io/guides/tutorials/react-and-spring-data-rest/[tutorial on the Spring website]. There is also content on https://angular.io[Angular] via another https://spring.io/guides/tutorials/spring-security-and-angular-js/[tutorial on the Spring website] and the related getting started content https://github.com/dsyer/spring-boot-angular[here].
