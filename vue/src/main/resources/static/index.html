@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<title>Demo</title>
+	<meta name="description" content="" />
+	<meta name="viewport" content="width=device-width" />
+	<base href="/" />
+	<link rel="stylesheet" type="text/css" href="/npm/bootstrap/dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" type="text/css" href="/npm/@springio/utils/style.css" />
+	<script async src="/npm/es-module-shims"></script>
+	<script type="importmap">
+		{
+			"imports": {
+				"bootstrap": "/npm/bootstrap",
+				"@popperjs/core": "/npm/@popperjs/core",
+				"@hotwired/stimulus": "/npm/hotwired__stimulus",
+				"@hotwired/turbo": "/npm/hotwired__turbo",
+				"chart.js": "/npm/chart.js",
+				"vue": "/npm/vue/dist/vue.esm.browser.js",
+				"@springio/utils": "/npm/@springio/utils"
+			}
+		}
+	</script>
+	<script type="module">
+		import 'bootstrap';
+		import '@springio/utils';
+	</script>
+	<script type="module">
+		import * as Turbo from '@hotwired/turbo';
+		Turbo.connectStreamSource(new EventSource("/stream"))
+	</script>
+</head>
+
+<body>
+	<header>
+		<h1>Demo</h1>
+		<nav class="nav nav-tabs">
+			<a class="nav-link active" data-bs-toggle="tab" data-bs-target="#message" href="#">Message</a>
+			<a class="nav-link" data-bs-toggle="tab" data-bs-target="#stream" href="#">Stream</a>
+			<a class="nav-link" data-bs-toggle="tab" data-bs-target="#test" href="#">Test</a>
+			<a class="nav-link" data-bs-toggle="tab" data-bs-target="#docs" href="#">Docs</a>
+			<a class="nav-link" data-bs-toggle="tab" data-bs-target="#chart" href="#">Chart</a>
+		</nav>
+	</header>
+	<main>
+		<br />
+		<div class="tab-content">
+			<div class="tab-pane fade show active" id="message" role="tabpanel">
+				<div class="container" data-controller="hello">
+					<div id="auth" data-hello-target="auth">
+						Unauthenticated
+					</div>
+					<div id="greeting" data-hello-target="output">Placeholder</div>
+					<input id="name" name="value" type="text" data-hello-target="name" />
+					<button class="btn btn-primary" data-action="click->hello#greet">Greet</button>
+				</div>
+			</div>
+			<div class="tab-pane fade" id="stream" role="tabpanel">
+				<div class="container">
+					<div id="load"></div>
+				</div>
+			</div>
+			<div class="tab-pane fade" id="test" role="tabpanel">
+				<turbo-frame id="turbo">
+					<div class="container" id="frame">
+						<div id="hi"></div>
+						<form action="/test" method="post">
+							<button class="btn btn-primary" type="submit">Fetch Content</button>
+						</form>
+					</div>
+				</turbo-frame>
+				<br/>
+				<div class="container" id="event-handling">
+					<p>{{ message }}</p>
+					<button class="btn btn-primary" v-on:click="reverseMessage">Reverse Message</button>
+				</div>
+			</div>
+			<div class="tab-pane fade" id="docs" role="tabpanel">
+				<div class="container" title="Content">
+					<div class="content primary">
+						<div class="title">One</div>
+						<div class="content">Some content</div>
+					</div>
+					<div class="content secondary">
+						<div class="title">Two</div>
+						<div class="content">Secondary</div>
+					</div>
+					<div class="content secondary">
+						<div class="title">Three</div>
+						<div class="content">Third option</div>
+					</div>
+				</div>
+				<div class="container" title="Another">
+					<div class="content primary">
+						<div class="title">One</div>
+						<div class="content">Some more content</div>
+					</div>
+					<div class="content secondary">
+						<div class="title">Two</div>
+						<div class="content">Secondary stuff</div>
+					</div>
+					<div class="content secondary">
+						<div class="title">Three</div>
+						<div class="content">Third option again</div>
+					</div>
+				</div>
+			</div>
+			<div class="tab-pane fade" id="chart" role="tabpanel" data-controller="chart">
+				<div class="container">
+					<canvas data-chart-target="canvas"></canvas>
+				</div>
+				<div class="container">
+					<button class="btn btn-primary" data-action="click->chart#clear">Clear</button>
+					<button class="btn btn-primary" data-action="click->chart#bar">Bar</button>
+					<button class="btn btn-primary" data-action="click->chart#pie">Pie</button>
+					<button class="btn btn-primary" data-action="click->chart#doughnut">Doughnut</button>
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<script type="module">
+		import { Application, Controller } from '@hotwired/stimulus';
+		window.Stimulus = Application.start();
+
+		import { Chart, BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend } from 'chart.js';
+		Chart.register(BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend);
+
+		Stimulus.register("hello", class extends Controller {
+			static targets = ["name", "output", "auth"]
+			initialize() {
+				let hello = this;
+				fetch("/user").then(response => {
+					response.json().then(data => {
+						hello.authTarget.textContent = `Logged in as: ${data.name}`;
+					});
+				});
+			}
+			greet() {
+				this.outputTarget.textContent = `Hello, ${this.nameTarget.value}!`;
+			};
+		});
+
+		Stimulus.register("chart", class extends Controller {
+			static targets = ["canvas"]
+			pops(type, legend) {
+				let chart = this;
+				this.clear();
+				fetch("/pops").then(response => {
+					response.json().then(data => {
+						data.type = type;
+						data.options.plugins.legend.display = legend;
+						chart.active = new Chart(chart.canvasTarget, data);
+					});
+				});;
+			};
+			clear() {
+				if (this.active) {
+					this.active.destroy();
+				}
+			};
+			bar() {
+				this.pops("bar", false);
+			};
+			pie() {
+				this.pops("pie", true);
+			};
+			doughnut() {
+				this.pops("doughnut", true);
+			};
+		});
+	</script>
+	<script type="module">
+		import Vue from 'vue';
+
+		const EventHandling = {
+			data() {
+				return {
+					message: 'Hello Vue.js!'
+				}
+			},
+			methods: {
+				reverseMessage() {
+					this.message = this.message
+						.split('')
+						.reverse()
+						.join('')
+				}
+			}
+		}
+
+		new Vue(EventHandling).$mount("#event-handling");
+	</script>
+
+</body>
+
+</html>

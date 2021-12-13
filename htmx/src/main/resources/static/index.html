@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<title>Demo</title>
+	<meta name="description" content="" />
+	<meta name="viewport" content="width=device-width" />
+	<base href="/" />
+	<link rel="stylesheet" type="text/css" href="/npm/bootstrap/dist/css/bootstrap.min.css" />
+	<script async src="/npm/es-module-shims"></script>
+	<script type="importmap">
+		{
+			"imports": {
+				"bootstrap": "/npm/bootstrap",
+				"@popperjs/core": "/npm/@popperjs/core",
+				"htmx": "/npm/htmx.org"
+			}
+		}
+	</script>
+	<script type="module">
+		import 'bootstrap';
+		import 'htmx';
+	</script>
+</head>
+
+<body>
+	<header>
+		<h1>Demo</h1>
+		<nav class="nav nav-tabs">
+			<a class="nav-link active" data-bs-toggle="tab" data-bs-target="#message" href="#">Message</a>
+			<a class="nav-link" data-bs-toggle="tab" data-bs-target="#stream" href="#">Stream</a>
+		</nav>
+	</header>
+	<main>
+		<div class="tab-content">
+			<div class="tab-pane fade show active" id="message" role="tabpanel">
+				<div class="container">
+					<div id="auth" hx-trigger="load" hx-get="/user">
+						Unauthenticated
+					</div>
+					<div id="greeting">Placeholder</div>
+					<input id="name" name="value" type="text" />
+					<button hx-post="/greet" hx-target="#greeting" hx-include="#name">Greet</button>
+				</div>
+			</div>
+			<div class="tab-pane fade" id="stream" role="tabpanel">
+				<div class="container" hx-sse="connect:/stream">
+					<div id="load" hx-sse="swap:message"></div>
+				</div>
+			</div>
+		</div>
+	</main>
+</body>
+
+</html>
