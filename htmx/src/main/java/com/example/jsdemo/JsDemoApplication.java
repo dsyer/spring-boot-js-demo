@@ -44,8 +44,8 @@ public class JsDemoApplication {
 
 	@GetMapping(path = "/test")
 	public Flux<Rendering> test() {
-		return Flux.just(Rendering.view("test").modelAttribute("value", "Test").build(),
-				Rendering.view("test").modelAttribute("value", "Foo").build());
+		return Flux.just(Rendering.view("test").modelAttribute("id", "hello").modelAttribute("value", "Hello").build(),
+				Rendering.view("test").modelAttribute("id", "world").modelAttribute("value", "World").build());
 	}
 
 	public static void main(String[] args) {

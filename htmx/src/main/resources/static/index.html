@@ -31,6 +31,7 @@
 		<nav class="nav nav-tabs">
 			<a class="nav-link active" data-bs-toggle="tab" data-bs-target="#message" href="#">Message</a>
 			<a class="nav-link" data-bs-toggle="tab" data-bs-target="#stream" href="#">Stream</a>
+			<a class="nav-link" data-bs-toggle="tab" data-bs-target="#test" href="#">Test</a>
 		</nav>
 	</header>
 	<main>
@@ -42,12 +43,19 @@
 					</div>
 					<div id="greeting">Placeholder</div>
 					<input id="name" name="value" type="text" />
-					<button hx-post="/greet" hx-target="#greeting" hx-include="#name">Greet</button>
+					<button class="btn btn-primary" hx-post="/greet" hx-target="#greeting" hx-include="#name">Greet</button>
 				</div>
 			</div>
 			<div class="tab-pane fade" id="stream" role="tabpanel">
 				<div class="container" hx-sse="connect:/stream">
 					<div id="load" hx-sse="swap:message"></div>
+				</div>
+			</div>
+			<div class="tab-pane fade" id="test" role="tabpanel">
+				<div class="container">
+					<div id="hello"></div>
+					<div id="world"></div>
+					<button class="btn btn-primary" hx-get="/test" hx-swap="none">Fetch</button>
 				</div>
 			</div>
 		</div>

@@ -59,7 +59,7 @@ $ curl https://start.spring.io/starter.tgz -d dependencies=webflux -d name=js-de
 
 We can add a really basic static home page at `src/main/resources/static/index.html`:
 
-```
+```html
 <!doctype html>
 <html lang="en">
 
@@ -100,7 +100,7 @@ and you can see the result on http://localhost:8080[localhost:8080].
 
 To start building client-side features, let's add some CSS out of the box from Bootstrap. We could use a CDN, like this for example in `index.html`:
 
-```
+```html
 ...
 <head>
 	...
@@ -109,9 +109,9 @@ To start building client-side features, let's add some CSS out of the box from B
 ...
 ```
 
-or we could use Webjars by packaging the Bootstrap libraries in our JAR file. To do that we need to add a couple of dependencies to the `pom.xml`:
+That's really convenient, if you want to get started quickly. For some apps it might be all you need. Here we take a different approach that makes our app more self-contained, and aligns well with the Java tooling we are used to - that is to use a Webjar and package the Bootstrap libraries in our JAR file. To do that we need to add a couple of dependencies to the `pom.xml`:
 
-```
+```xml
 <dependency>
 	<groupId>org.webjars</groupId>
 	<artifactId>webjars-locator-core</artifactId>
@@ -125,7 +125,7 @@ or we could use Webjars by packaging the Bootstrap libraries in our JAR file. To
 
 and then in `index.html` instead of the CDN we use a resource path inside the application:
 
-```
+```html
 ...
 <head>
 	...
@@ -140,7 +140,7 @@ If you rebuild and/or re-run the application you will see nice vanilla Bootstrap
 
 Bootstrap is also a Javascript library, so we can start to use it more fully by taking advantage of that aspect. We can add the library in `index.html` like this:
 
-```
+```html
 ...
 <head>
 ...
@@ -153,7 +153,7 @@ It doesn't do anything visible yet, but you can verify that it is loaded by the 
 
 We said in the introduction that we would use ESM modules where available, and Bootstrap has one, so let's get that working. Replace the `<script>` tag in `index.html` with this:
 
-```
+```html
 <script type="importmap">
 	{
 		"imports": {
@@ -174,7 +174,7 @@ Uncaught TypeError: Failed to resolve module specifier "@popperjs/core". Relativ
 
 PopperJS is no a mandatory transitive dependency of the Bootstrap Webjar, so we have to include that as well in `pom.xml`:
 
-```
+```xml
 <dependency>
 	<groupId>org.webjars.npm</groupId>
 	<artifactId>popperjs__core</artifactId>
@@ -184,12 +184,12 @@ PopperJS is no a mandatory transitive dependency of the Bootstrap Webjar, so we 
 
 and then it can be added to the import map:
 
-```
+```html
 <script type="importmap">
 	{
 		"imports": {
-			"bootstrap": "/webjars/bootstrap/dist/js/bootstrap.esm.min.js"
-			"@popperjs/core": "/webjars/popperjs__core/lib/index.js",
+			"bootstrap": "/webjars/bootstrap/dist/js/bootstrap.esm.min.js",
+			"@popperjs/core": "/webjars/popperjs__core/lib/index.js"
 		}
 	}
 </script>
@@ -201,7 +201,7 @@ and this will fix the console error.
 
 The resource paths inside a Webjar (e.g. `/bootstrap/dist/js/bootstrap.esm.min.js`) are not standardized - that is there is no naming convention that allows you to guess the location of the ESM module inside a Webjar, or an NPM module, which amounts to the same thing. But there are some conventions in NPM modules that make it possible to automate, namely most modules have a `package.json` with a "module" field, e.g. from Bootstrap:
 
-```
+```json
 {
   "name": "bootstrap",
   "description": "The most popular front-end framework for developing responsive, mobile first projects on the web.",
@@ -214,18 +214,33 @@ The resource paths inside a Webjar (e.g. `/bootstrap/dist/js/bootstrap.esm.min.j
 
 CDNs like unpkg.com make use of this information, so you can use them when you know only the ESM module name. E.g. this should work:
 
-```
+```html
 <script type="importmap">
 	{
 		"imports": {
-			"bootstrap": "https://unpkg.com/bootstrap"
-			"@popperjs/core": "https://unpkg.com/@popperjs/core",
+			"bootstrap": "https://unpkg.com/bootstrap",
+			"@popperjs/core": "https://unpkg.com/@popperjs/core"
 		}
 	}
 </script>
 ```
 
-It would be nice to be able to do the same with `/webjars` resource paths. That's what the `NpmVersionResolver` does in all the samples. You don't need it if you don't use Webjars and you can use a CDN, and you don't need it if you don't mind manually opening up all the `package.json` files and looking for the module path. But it's nice to not have to think about that. There's a https://github.com/spring-projects/spring-boot/issues/28715[feature request] asking for this feature to be included in Spring Boot.
+It would be nice to be able to do the same with `/webjars` resource paths. That's what the `NpmVersionResolver` does in all the samples. You don't need it if you don't use Webjars and you can use a CDN, and you don't need it if you don't mind manually opening up all the `package.json` files and looking for the module path. But it's nice to not have to think about that. There's a https://github.com/spring-projects/spring-boot/issues/28715[feature request] asking for this feature to be included in Spring Boot. Another feature of the `NpmVersionResolver` is that it knows about the Webjars metadata, so it can resolve the version of each Webjar from the classpath, and we don't need that `webjars-locator-core` dependency (there's an https://github.com/spring-projects/spring-framework/issues/27619[open issue in Spring Framework] to add this feature).
+
+So in the sample the import map is like this:
+
+```html
+<script type="importmap">
+	{
+		"imports": {
+			"bootstrap": "/npm/bootstrap",
+			"@popperjs/core": "/npm/@popperjs/core"
+		}
+	}
+</script>
+```
+
+All you need to know is the NPM module name, and the resolver figures out how to find a resource that resolves to the ESM bundle. It uses a Webjar if there is one, and otherwise redirects to a CDN.
 
 NOTE: Most modern browsers support modules and module maps. Those that don't can be used in our app at the cost of adding a https://www.npmjs.com/package/es-module-shims[shim library]. It is already included in the samples.
 
@@ -233,7 +248,7 @@ NOTE: Most modern browsers support modules and module maps. Those that don't can
 
 We might as well use the Bootstrap styles now we have it all working. So how about some tabs with content and a button or two to press? Sounds good. First the `<header/>` with the tab links in `index.html`:
 
-```
+```html
 <header>
 	<h1>Demo</h1>
 	<nav class="nav nav-tabs">
@@ -245,7 +260,7 @@ We might as well use the Bootstrap styles now we have it all working. So how abo
 
 The second (default inactive) tab is called "stream" because that's going to be part of the HTMX sample. The tab contents look like this in the `<main/>` section:
 
-```
+```html
 <main>
 	<div class="tab-content">
 		<div class="tab-pane fade show active" id="message" role="tabpanel">
@@ -262,4 +277,234 @@ The second (default inactive) tab is called "stream" because that's going to be 
 </main>
 ```
 
-Note how one of the tabs is "active" and both have ids that match up with the `data-bs-target` attributes in the header. That's why we need some Javascript - to handle the click events on the tabs so that the correct content is revealed or hidden. The https://getbootstrap.com/docs/5.1/getting-started/introduction/[Bootstrap docs] have loads of examples of different tab styles and layouts. One nice thing about the basic features here is that they automatically render nicely as drop downs on a narrow device like a mobile phone.
+Note how one of the tabs is "active" and both have ids that match up with the `data-bs-target` attributes in the header. That's why we need some Javascript - to handle the click events on the tabs so that the correct content is revealed or hidden. The https://getbootstrap.com/docs/5.1/getting-started/introduction/[Bootstrap docs] have loads of examples of different tab styles and layouts. One nice thing about the basic features here is that they can automatically render as drop downs on a narrow device like a mobile phone (with some small changes to the class attributes in the `<nav/>`). In a browser it looks like this:
+
+image::images/tabs.png[]
+
+## Dynamic Content with HTMX
+
+We can add some dynamic content really quickly with HTMX. First we need the Javascript library, so we add it as a Webjar:
+
+```xml
+<dependency>
+	<groupId>org.webjars.npm</groupId>
+	<artifactId>htmx.org</artifactId>
+	<version>1.6.0</version>
+</dependency>
+```
+
+and then import it in `index.html`:
+
+```html
+<script type="importmap">
+	{
+		"imports": {
+			"bootstrap": "/npm/bootstrap",
+			"@popperjs/core": "/npm/@popperjs/core",
+			"htmx": "/npm/htmx.org"
+		}
+	}
+</script>
+<script type="module">
+	import 'bootstrap';
+	import 'htmx';
+</script>
+```
+
+Then we can change the greeting from "Hello World" to something that comes from user input. Let's add an input field and a button to the main tab:
+
+```html
+<div class="container">
+	<div id="greeting">Hello World</div>
+	<input id="name" name="value" type="text" />
+	<button hx-post="/greet" hx-target="#greeting" hx-include="#name">Greet</button>
+</div>
+```
+
+The input field is unadorned, and the button has some `hx-*` attributes that are grabbed by the HTMX library and used to enhance the page. These ones say "when user clicks on this button, send a POST to `/greet`, including the 'name' in the request, and render the result by replacing the content of the 'greeting'". Then all we need is a `/greet` resource in the backend:
+
+```java
+@SpringBootApplication
+@RestController
+public class JsDemoApplication {
+
+	@PostMapping("/greet")
+	public String greet(@ModelAttribute Greeting values) {
+		return "Hello " + values.getValue() + "!";
+	}
+
+	...
+
+	static class Greeting {
+		private String value;
+
+		public String getValue() {
+			return value;
+		}
+
+		public void setValue(String value) {
+			this.value = value;
+		}
+	}
+}
+```
+
+Spring will bind the "name" parameter in the incoming request to the `Greeting` and we convert it to text which is then injected in the `<div id="greeting"/>` on the page. You can use HTMX to inject plain text like this, or whole fragments of HTML. Or you can append (or prepend) to a list of existing elements, like rows in a table, or items in a list.
+
+Here's another thing you can do:
+
+```html
+<div class="container">
+	<div id="auth" hx-trigger="load" hx-get="/user">
+		Unauthenticated
+	</div>
+	...
+</div>
+```
+
+This does a GET to `/user` when the page loads and swaps the content of the element. The sample app has this and the endpoint returns "Fred" so you see it like this:
+
+image::images/user.png[]
+
+### SSE Streams with HTMX
+
+There are many other neat things you can do with HTMX, and one of those is to render a https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#event_stream_format[Server Sent Event (SSE)] stream. First we'll add an endpoint to the backend app:
+
+```java
+@SpringBootApplication
+@RestController
+public class JsDemoApplication {
+
+	@GetMapping(path = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+	public Flux<String> stream() {
+		return Flux.interval(Duration.ofSeconds(5)).map(
+			value -> value + ":" + System.currentTimeMillis()
+		);
+	}
+
+	...
+}
+```
+
+So we have a stream of messages rendered by Spring by virtue of the `produces` attribute on the endpoint mapping:
+
+```
+$ curl localhost:8080/stream
+data:0:1639472861461
+
+data:1:1639472866461
+
+data:2:1639472871461
+
+...
+```
+
+HTMX can inject those messages into our page. Here's how in `index.html` added to the "stream" tab:
+ 
+```html
+<div class="container">
+	<div id="load" hx-sse="connect:/stream">
+		<div id="load" hx-sse="swap:message"></div>
+	</div>
+</div>
+```
+
+We connect to the `/stream` using the `connect:/stream` attribute and then pull event data out using `swap:message`. Actually "message" is the default event type, but SSE payloads can also specify other types by including a line starting with `event:`, and so you could have a stream that multiplexes many different event types and have them each affect the HTML in different ways.
+
+The endpoint in our backend above is very simple: it just sends back plain strings, but it could do more. E.g. it could send back fragments of HTML and they would be injected into the page. The sample applications do it with a custom Spring Webflux component named `CompositeViewRenderer` (as requested https://github.com/spring-projects/spring-framework/issues/27652[here] for the Framework), where they return a `Flux<Rendering>` (in MVC it would be `Flux<ModelAndView>`). It enables an endpoint to stream dynamic view renderings:
+
+```java
+@GetMapping(path = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+public Flux<Rendering> stream() {
+	return Flux.interval(Duration.ofSeconds(5)).map(value -> Rendering.view("time")
+			.modelAttribute("value", value)
+			.modelAttribute("time", System.currentTimeMillis()).build());
+}
+```
+
+This is paired with a view named "time" and the normal Spring machinery renders the model:
+
+```
+$ curl localhost:8080/stream
+data:<div>Index: 0, Time: 1639474490435</div>
+
+data:<div>Index: 1, Time: 1639474495435</div>
+
+data:<div>Index: 2, Time: 1639474500435</div>
+
+...
+```
+
+The HTML comes from a template:
+
+```html
+<div>Index: {{value}}, Time: {{time}}</div>
+```
+
+which in turn works automatically because we included JMustache on the classpath in `pom.xml`:
+
+```xml
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-mustache</artifactId>
+</dependency>
+```
+
+### Replacing and Enhancing HTML Dynamically
+
+HTMX can do more. Instead of an SSE stream, and endpoint can return a regular HTTP response, but compose it as a set of elements to swap on the page. HTMX calls this an "out of band" swap because it involves enhancing content of elements on the page that are not the one that was clicked or annotated. To see this work we can add another tab:
+
+```html
+<nav class="nav nav-tabs">
+	...
+	<a class="nav-link" data-bs-toggle="tab" data-bs-target="#test" href="#">Test</a>
+</nav>
+...
+```
+
+and the content
+
+```html
+<div class="tab-pane fade" id="test" role="tabpanel">
+	<div class="container">
+		<div id="hello"></div>
+		<div id="world"></div>
+		<button class="btn btn-primary" hx-get="/test" hx-swap="none">Fetch</button>
+	</div>
+</div>
+```
+
+The button fetches dynamic content from `/test` and sets up 2 empty divs "hello" and "world" to receive it. The `hx-swap="none"` is important - it tells HTMX not to replace the content of the element that triggered the GET. If we have an endpoint that returns this:
+
+```
+$ curl localhost:8080/test
+<div id="hello" hx-swap-oob="true">Hello</div>
+<div id="world" hx-swap-oob="true">World</div>
+```
+
+then the page renders like this (after the "Fetch" button is pressed):
+
+image::images/test.png[]
+
+A simple implementation of this endpoint would be
+
+```java
+@GetMapping(path = "/test")
+public String test() {
+	return "<div id=\"hello\" hx-swap-oob=\"true\">Hello</div>\n"
+		+ "<div id=\"world\" hx-swap-oob=\"true\">World</div>";
+}
+```
+
+or (using the custom view renderer):
+
+```java
+@GetMapping(path = "/test")
+public Flux<Rendering> test() {
+	return Flux.just(
+			Rendering.view("test").modelAttribute("id", "hello")
+				.modelAttribute("value", "Hello").build(),
+			Rendering.view("test").modelAttribute("id", "world")
+				.modelAttribute("value", "World").build());
+}
+```
