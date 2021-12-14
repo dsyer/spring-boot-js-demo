@@ -508,3 +508,14 @@ public Flux<Rendering> test() {
 				.modelAttribute("value", "World").build());
 }
 ```
+
+with a template "test.mustache":
+
+```html
+<div id="{{id}}" hx-swap-oob="true">{{value}}</div>
+```
+
+### Boosting Links and Forms
+
+Another thing that HTMX does is "boost" all the links and form actions in your page, so that they automatically work using an XHR request instead of a full page refresh. That's a really simple way to segment your page by feature and update only the bits that you need. You can also easily do that in a "progressive" way - i.e. the application works with full page refreshes if Javascript is disabled, but is zippier and feels more "modern" if Javascript is enabled.
+
