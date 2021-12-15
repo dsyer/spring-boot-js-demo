@@ -1347,10 +1347,11 @@ We also need the chart module setup from the Vue sample (it won't work in a `<sc
 <script type="module">
 	import { Chart, BarController, BarElement, LinearScale, CategoryScale, Title, Legend } from 'chart.js';
 	Chart.register(BarController, BarElement, LinearScale, CategoryScale, Title, Legend);
+	window.Chart = Chart;
 </script>
 ```
 
-(Chart.js isn't actually an ESM module, so `Chart` is defined as a global, and we can still use it in our React component, even though that isn't defined in the same script.)
+Chart.js isn't actually an ESM module, so you can't import it into a Babel script. So we import it in a separate module, and `Chart` has to be defined as a global, so we can still use it in our React component.
 
 ### Server Side Fragments
 

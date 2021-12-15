@@ -116,6 +116,7 @@
 	<script type="module">
 		import { Chart, BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend } from 'chart.js';
 		Chart.register(BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend);
+		window.Chart = Chart;
 	</script>
 	<script type="text/babel">
 		class ChartChooser extends React.Component {
@@ -124,13 +125,16 @@
 				this.state = {};
 				this.clear = this.clear.bind(this);
 				this.bar = this.bar.bind(this);
+				this.pie = this.pie.bind(this);
+				this.doughnut = this.doughnut.bind(this);
 			};
-			bar() {
+			pops(type, legend) {
 				let chart = this;
 				this.clear();
 				fetch("/pops").then(response => {
 					response.json().then(data => {
-						data.type = "bar";
+						data.type = type;
+						data.options.plugins.legend.display = legend;
 						chart.setState({ active: new Chart(document.getElementById("canvas"), data) });
 					});
 				});
@@ -140,10 +144,21 @@
 					this.state.active.destroy();
 				}
 			};
+			bar() {
+				this.pops("bar", false);
+			};
+			pie() {
+				this.pops("pie", true);
+			};
+			doughnut() {
+				this.pops("doughnut", true);
+			};
 			render() {
 				return <div>
 					<button className="btn btn-primary" onClick={this.clear}>Clear</button>
 					<button className="btn btn-primary" onClick={this.bar}>Bar</button>
+					<button className="btn btn-primary" onClick={this.pie}>Pie</button>
+					<button className="btn btn-primary" onClick={this.doughnut}>Doughnut</button>
 				</div>;
 			}
 		}
