@@ -1,3 +1,5 @@
+:toc: auto
+
 These samples explore the different options that Spring Boot developers have for using Javascript and CSS on the client (browser) side of their application. Part of the plan is to explore some Javascript libraries that play well in the traditional server-side-rendered world of Spring web applications. Those libraries tend to have a light touch for the application developer, in the sense that they allow you to completely avoid Javascript, but still have nice a progressive "modern" UI. We also look at some more "pure" Javascript tools and frameworks. It's kind of a spectrum, so as a TL;DR here is a list of the sample apps, in rough order of low to high Javascript content:
 
 * `htmx`: https://htmx.org[HTMX] is a library that allows you to access modern browser features directly from HTML, rather than using javascript. It is very easy to use and well suited to server-side rendering because it works by replacing sections of the DOM directly from remote responses. It seems to be well used and appreciated by the https://www.python.org/[Python] community.
@@ -519,3 +521,529 @@ with a template "test.mustache":
 
 Another thing that HTMX does is "boost" all the links and form actions in your page, so that they automatically work using an XHR request instead of a full page refresh. That's a really simple way to segment your page by feature and update only the bits that you need. You can also easily do that in a "progressive" way - i.e. the application works with full page refreshes if Javascript is disabled, but is zippier and feels more "modern" if Javascript is enabled.
 
+## Dynamic Content with Hotwired
+
+Hotwired is a little bit similar to HTMX featurewise, so let's replace the libraries. Take out HTMX and add Hotwired (Turbo) to the application. In `pom.xml`:
+
+```xml
+<dependency>
+	<groupId>org.webjars.npm</groupId>
+	<artifactId>hotwired__turbo</artifactId>
+	<version>7.1.0</version>
+</dependency>
+```
+
+Then we can import it into our page by adding an import map:
+
+```html
+<script type="importmap">
+	{
+		"imports": {
+			...
+			"@hotwired/turbo": "/npm/hotwired__turbo"
+		}
+	}
+</script>
+```
+
+and a script to import the library:
+
+```html
+<script type="module">
+	import * as Turbo from '@hotwired/turbo';
+</script>
+```
+
+### Replacing and Enhancing HTML Dynamically
+
+This lets us do the dynamic content stuff that we already did with HTMX with a few changes to the HTML. Here's the "test" tab in `index.html`:
+
+```html
+<div class="tab-pane fade" id="test" role="tabpanel">
+	<turbo-frame id="turbo">
+		<div class="container" id="frame">
+			<div id="hello"></div>
+			<div id="world"></div>
+			<form action="/test" method="post">
+				<button class="btn btn-primary" type="submit">Fetch</button>
+			</form>
+		</div>
+	</turbo-frame>
+</div>
+```
+
+Turbo works a little differently. So the `<turbo-frame/>` tells Turbo that everything inside is enhanced (a bit like an HTMX boost). And to replace the "hello" and "world" elements on a button click, we need the button to send a POST through a form (Turbo is more opinionated about this than HTMX), and the `/test` endpoint to send back some `<turbo-stream/>` fragments:
+
+```html
+<turbo-stream action="replace" target="hello">
+        <template>
+                <div id="hello">Hi Hello!</div>
+        </template>
+</turbo-frame>
+
+<turbo-stream action="replace" target="world">
+        <template>
+                <div id="world">Hi World!</div>
+        </template>
+</turbo-frame>
+```
+
+The result of clicking the "Fetch" button should be to render "Hello" and "World" as before.
+
+### Server Sent Events
+
+Turbo also has built in support for SSE rendering, but this time the event data has to have `<turbo-stream/>` elements in it. For example:
+
+```
+$ curl localhost:8080/stream
+data:<turbo-stream action="replace" target="load">
+data:   <template>
+data:           <div id="load">Index: 0, Time: 1639482422822</div>
+data:   </template>
+data:</turbo-stream>
+
+data:<turbo-stream action="replace" target="load">
+data:   <template>
+data:           <div id="load">Index: 1, Time: 1639482427821</div>
+data:   </template>
+data:</turbo-stream>
+```
+
+Then the "stream" tab just needs an empty `<div id="load"></div>` and Turbo will do what it was asked (replace the element identified by "load"):
+
+```html
+<div class="tab-pane fade" id="stream" role="tabpanel">
+	<div class="container">
+		<div id="load"></div>
+	</div>
+</div>
+```
+
+Both Turbo and HTMX allow you to target elements for dynamic content by id or by CSS style matcher, both for regular HTTP responses and SSE streams.
+
+### Stimulus
+
+There is another library in Hotwired called https://stimulus.hotwired.dev[Stimulus] that lets you add more customized behaviour than is possible with Turno using small amounts of Javascript. It comes in handy if you have an endpoint in your backend service that returns JSON not HTML, for instance. We can get started with Stimulus by adding it as a dependency in `pom.xml`:
+
+```xml
+<dependency>
+	<groupId>org.webjars.npm</groupId>
+	<artifactId>hotwired__stimulus</artifactId>
+	<version>3.0.1</version>
+</dependency>
+```
+
+and with an import map in `index.html`:
+
+```html
+<script type="importmap">
+	{
+		"imports": {
+			...
+			"@hotwired/stimulus": "/npm/@hotwired/stimulus"
+		}
+	}
+</script>
+```
+
+Then we are in good shape to replace the piece of the main "message" tab that we did with HTMX before. Here's the tab content covering just the button and custom message:
+
+```html
+<div class="tab-pane fade show active" id="message" role="tabpanel">
+	<div class="container" data-controller="hello">
+		<div id="greeting" data-hello-target="output">Hello World</div>
+		<input id="name" name="value" type="text" data-hello-target="name" />
+		<button class="btn btn-primary" data-action="click->hello#greet">Greet</button>
+	</div>
+</div>
+```
+
+Notice the `data-*` attributes. There is a `controller` ("hello") that we need to implement, with an action that says "when this button is clicked, call the function 'greet' on the 'hello' controller", and some decorations that identify which elements have input and output for the controller (the `data-hello-target` attributes). The Javascript to implement the custom message looks like this:
+
+```html
+<script type="module">
+	import { Application, Controller } from '@hotwired/stimulus';
+	window.Stimulus = Application.start();
+
+	Stimulus.register("hello", class extends Controller {
+		static targets = ["name", "output"]
+		greet() {
+			this.outputTarget.textContent = `Hello, ${this.nameTarget.value}!`;	
+		};
+	});	
+</script>
+```
+
+The `Controller` is registered with the `data-controller` name from the HTML, and it has a `targets` field that enumerates all the ids of elements that it wants to target. It can then refer to them by a naming convention, e.g. "output" shows up in the controller as a reference to a DOM element called `outputTarget`.
+
+You can do more or less anything you like in the `Controller`, so for example you could pull some content from the backend. The `turbo` sample does that by pulling a string from the `/user` endpoint and inserting it in an "auth" target element:
+
+```html
+<div class="container" data-controller="hello">
+	<div id="auth" data-hello-target="auth"></div>
+	...
+</div>
+```
+
+with the complementary Javascript:
+
+```javascript
+Stimulus.register("hello", class extends Controller {
+	static targets = ["name", "output", "auth"]
+	initialize() {
+		let hello = this;
+		fetch("/user").then(response => {
+			response.json().then(data => {
+				hello.authTarget.textContent = `Logged in as: ${data.name}`;
+			});
+		});
+	}
+	...
+});
+```
+
+## Add Some Charts
+
+We can have some fun adding other Javascript libraries, for instance some nice graphics. Here's a new tab in `index.html` (remember to add the `<nav/>` link as well):
+
+```html
+<div class="tab-pane fade" id="chart" role="tabpanel" data-controller="chart">
+	<div class="container">
+		<canvas data-chart-target="canvas"></canvas>
+	</div>
+	<div class="container">
+		<button class="btn btn-primary" data-action="click->chart#clear">Clear</button>
+		<button class="btn btn-primary" data-action="click->chart#bar">Bar</button>
+	</div>
+</div>
+```
+
+It has an empty `<canvas/>` that we can try and fill in with a bar chart using https://www.chartjs.org/[Chart.js]. In preparation for that we declared a controller called "chart" in the HTML above and labelled the target element for it with `data-*-target`. So let's start by adding Chart.js to the application. In `pom.xml`:
+
+```xml
+<dependency>
+	<groupId>org.webjars.npm</groupId>
+	<artifactId>chart.js</artifactId>
+	<version>3.6.0</version>
+</dependency>
+```
+
+and in `index.html` we add an import map and some Javascript to render the chart:
+
+```html
+	<script type="importmap">
+		{
+			"imports": {
+				...
+				"chart.js": "/npm/chart.js"
+			}
+		}
+	</script>
+```
+
+and the new controller implementing the "bar" and "clear" actions from the buttons in the HTML:
+
+```javascript
+Stimulus.register("chart", class extends Controller {
+	static targets = ["canvas"]
+	bar(type) {
+		let chart = this;
+		this.clear();
+		fetch("/pops").then(response => {
+			response.json().then(data => {
+				data.type = "bar";
+				chart.active = new Chart(chart.canvasTarget, data);
+			});
+		});;
+		clear() {
+			if (this.active) {
+				this.active.destroy();
+			}
+		};
+	};
+});
+```
+
+To service this we need an endpoint with some chart data (estimated world population by continent according to Wikipedia):
+
+```
+$ curl localhost:8080/pops | jq .
+{
+  "data": {
+    "labels": [
+      "Africa",
+      "Asia",
+      "Europe",
+      "Latin America",
+      "North America"
+    ],
+    "datasets": [
+      {
+        "backgroundColor": [
+          "#3e95cd",
+          "#8e5ea2",
+          "#3cba9f",
+          "#e8c3b9",
+          "#c45850"
+        ],
+        "label": "Population (millions)",
+        "data": [
+          2478,
+          5267,
+          734,
+          784,
+          433
+        ]
+      }
+    ]
+  },
+  "options": {
+    "plugins": {
+      "legend": {
+        "display": false
+      },
+      "title": {
+        "text": "Predicted world population (millions) in 2050",
+        "display": true
+      }
+    }
+  }
+}
+```
+
+The sample app has a few more charts, all showing the same data in different formats. They are all serviced by the same endpoint illustrated above:
+
+```java
+@GetMapping("/pops")
+@ResponseBody
+public Chart bar() {
+	return new Chart();
+}
+```
+
+## Code Block Hiding
+
+In Spring guides and reference documentation we often see blocks of code segmented by "type" (e.g. Maven vs. Gradle, or XML vs. Java). They are shown with one option active and the rest hidden, and if the user clicks on another option, not just the closest code snippets, but all the snippets in the whole document. For example if the user clilcks on "Gradle" all the code snippets that refer to "Gradle" are simultaneously activated. The Javascript that drives that feature exists in several forms, depending on which guide or project is using it, and one of those forms is as an NPM bundle https://www.npmjs.com/package/@springio/utils[@springio/utils]. It's not strictly an ESM module but we can still import it and see the feature working. Here's what it looks like in `index.html`:
+
+```html
+<script type="importmap">
+	{
+		"imports": {
+			...
+			"@springio/utils": "/npm/@springio/utils"
+		}
+	}
+</script>
+<script type="module">
+	...
+	import '@springio/utils';
+</script>
+```
+
+and then we can add a new tab with some "code snippets" (just junk content in this case):
+
+```html
+<div class="tab-pane fade" id="docs" role="tabpanel">
+	<div class="container" title="Content">
+		<div class="content primary"><div class="title">One</div><div class="content">Some content</div></div>
+		<div class="content secondary"><div class="title">Two</div><div class="content">Secondary</div></div>
+		<div class="content secondary"><div class="title">Three</div><div class="content">Third option</div></div>
+	</div>
+	<div class="container" title="Another">
+		<div class="content primary"><div class="title">One</div><div class="content">Some more content</div></div>
+		<div class="content secondary"><div class="title">Two</div><div class="content">Secondary stuff</div></div>
+		<div class="content secondary"><div class="title">Three</div><div class="content">Third option again</div></div>
+	</div>
+</div>
+```
+
+Which looks like this if the user selects the "One" block type:
+
+image::images/one.png[]
+
+The thing that drives the behaviour is the structure of the HTML, with one element labelled "primary" and alternatives as "secondary", then a nested `class="title"` before the actual content. The title is pulled out into the buttons by the Javascript.
+
+## Dynamic Content With Vue
+
+Vue is a lightweight Javascript library that you can use a little of or a lot. To get started we would need the dependency in `pom.xml`:
+
+```xml
+<dependency>
+	<groupId>org.webjars.npm</groupId>
+	<artifactId>vue</artifactId>
+	<version>2.6.14</version>
+</dependency>
+```
+
+and add it to the import map in `index.html`:
+
+```html
+<script type="importmap">
+	{
+		"imports": {
+			...
+			"vue": "/npm/vue/dist/vue.esm.browser.js"
+		}
+	}
+</script>
+```
+
+Then we can write a component and "mount" it in a named element (it's an example from the Vue user guide):
+
+```html
+<script type="module">
+	import Vue from 'vue';
+
+	const EventHandling = {
+		data() {
+			return {
+				message: 'Hello Vue.js!'
+			}
+		},
+		methods: {
+			reverseMessage() {
+				this.message = this.message
+					.split('')
+					.reverse()
+					.join('')
+			}
+		}
+	}
+
+	new Vue(EventHandling).$mount("#event-handling");
+</script>
+```
+
+To receive the dynamic content we need an element that matches `#event-handling`, e.g.
+
+```html
+<div class="tab-pane fade" id="test" role="tabpanel">
+	<div class="container" id="event-handling">
+		<p>{{ message }}</p>
+		<button class="btn btn-primary" v-on:click="reverseMessage">Reverse Message</button>
+	</div>
+</div>
+```
+
+So the templating happens on the client, and it is triggered by a click using `v-on` from Vue.
+
+## Dynamic Content with React
+
+Most people who use React probably do more than just a bit of logic and end up with all of the layout and rendering in Javascript. You don't have to do that, and it's quite easy to use just a bit of React to get a feel for it. You could leave it at that and use it as a utility library, like with the other libraries in these samples, or you could evolve to a full Javascript client-side component approach.
+
+We can get started and try it out without changing too much. First the dependencies in `pom.xml`
+ (the sample code will end up looking like the `react-webjars` sample if you want to peek):
+
+```xml
+<dependency>
+	<groupId>org.webjars.npm</groupId>
+	<artifactId>react</artifactId>
+	<version>17.0.2</version>
+</dependency>
+<dependency>
+	<groupId>org.webjars.npm</groupId>
+	<artifactId>react-dom</artifactId>
+	<version>17.0.2</version>
+</dependency>
+```
+
+and the module map in `index.html`:
+
+```html
+<script type="importmap">
+	{
+		"imports": {
+			...
+			"react": "/npm/react/umd/react.development.js",
+			"react-dom": "/npm/react-dom/umd/react-dom.development.js"
+		}
+	}
+</script>
+```
+
+React is not packaged as an ESM bundle (yet, anyway), so there is no "module" metadata and we have to hard code the resource paths like this. The "umd" in the resource path refers to "Universal Module Definition" which is an older attempt at modular Javascript. It's close enough that if you squint you can use it in a similar way sometimes.
+
+With those in place you can import the functions and objects they define:
+
+```html
+<script type="module">
+	import * as React from 'react';
+	import * as ReactDOM from 'react-dom';
+</script>
+```
+
+Because they are not really ESM modules you can do this at the "global" level in a `<script/>` in the HTML `<head/>`, e.g. where we import `bootstrap`. Then you can define some content by creating a `React.Component`. Here's a really basic static example:
+
+```html
+<script type="module">
+	const e = React.createElement;
+	class RootComponent extends React.Component {
+		constructor(props) {
+			super(props);
+		}
+		render() {
+			return e(
+				'div',
+				{},
+				'Hello, world!'
+			);
+		}
+	}
+	ReactDOM.render(e(RootComponent), document.querySelector('#root'));
+</script>
+```
+
+It is rendering itself in an element with `id="root"`, so we'd better add one of those as well, for example in the "test" tab:
+
+```html
+<div class="tab-pane fade" id="test" role="tabpanel">
+	<div class="container" id="root"></div>
+</div>
+```
+
+If you run that it should work and it should say "Hello World" in that tab.
+
+### HTML in Javascript: XJS
+
+Most React apps use HTML embedded in the Javascript in a templating language called "XJS" (which can be used in other ways but is actually part of React now). The hello world sample above looks lilke this:
+
+```html
+<script type="text/babel">
+	class Hello extends React.Component {
+		render() {
+			return <h1>Hello, {this.props.name}!</h1>;
+		}
+	}
+	ReactDOM.render(
+		<Hello name="World"/>,
+		document.getElementById('root')
+	);
+</script>
+```
+
+The component defines a custom element (the `<Hello/>`) that match the class name of the component, and conventionally starts with a capital letter. The `<Hello/>` fragment is an XJS template and the component has a `render()` function that returns an XJS template. Braces are used for interpolation, and `props` is a map including (amongst other things) all the attributes of the custom element (so "name" in this case). Finally there is that `<script type="text/babel">` which is needed to transpile the XJS into actual Javascript that the browser will understand. The script above will do nothing until the browser is taught to recognize this script. We do that by importing another module:
+
+```html
+	<script type="importmap">
+		{
+			"imports": {
+				...
+				"react": "/npm/react/umd/react.development.js",
+				"react-dom": "/npm/react-dom/umd/react-dom.development.js",
+				"@babel/standalone": "/npm/@babel/standalone"
+			}
+		}
+	</script>
+	<script type="module">
+		...
+		import * as React from 'react';
+		import * as ReactDOM from 'react-dom';
+		import '@babel/standalone';
+	</script>
+```
+
+The React user guide advises against using `@babel/standalone` in a large application because it has to do a lot of work in the browser, and that can be done once at build time which is more efficient. But it's good for trying stuff out, and for apps with small amounts of React code, like this one.
+
+## Building and Bundling with Node.js
+
+## Bundling a React App with Node.js
