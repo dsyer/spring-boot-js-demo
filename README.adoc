@@ -1027,11 +1027,46 @@ and here's the Javascript code to render the chart:
 
 The sample code also has pie and doughnut chart types and they work the same way.
 
-### Server Side Rendering
+### Server Side Fragments
 
-The Vue community seem united on the view that replacing HTML like we do with HTMX and Turbo might be possible (you can store anything in the model) but isn't what Vue was intended for. However, it seems like we owe it to ourselves to see what they mean, so let's try it.
+Vue can replace the entire inner HTML of an element using the `v-html` attribute, so we can start to re-implement the Turbo content with that. Here's the new "test" tab:
 
-First, the 
+```html
+<div class="tab-pane fade" id="test" role="tabpanel">
+	<div class="container" id="frame">
+		<div id="hi" v-html="html"></div>
+		<button class="btn btn-primary" v-on:click="hello">Fetch</button>
+	</div>
+</div>
+```
+
+It has a click handler referring to a "hello" method, and a div that is waiting to receive content. We can attach the button to the "hi" container like this:
+
+```html
+<script type="module">
+	import Vue from 'vue';
+
+	const HelloHandling = {
+		data: {
+			html: ''
+		},
+		methods: {
+			hello() {
+				const handler = this;
+				fetch("/test").then(response => {
+					response.text().then(data => {
+						handler.html = data;
+					});
+				});
+			},
+		}
+	}
+
+	new Vue(HelloHandling).$mount("#test");
+</script>
+```
+
+So it is definitely possible to replace our Turbo (and HTMX) code with Vue (or another library or even plain Javscript), but it inevitably involves some boilerplate Javascript.
 
 ## Dynamic Content with React
 

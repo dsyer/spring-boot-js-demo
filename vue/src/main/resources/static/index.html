@@ -63,15 +63,10 @@
 				</div>
 			</div>
 			<div class="tab-pane fade" id="test" role="tabpanel">
-				<turbo-frame id="turbo">
-					<div class="container" id="frame">
-						<div id="hi"></div>
-						<form action="/test" method="post">
-							<button class="btn btn-primary" type="submit">Fetch Content</button>
-						</form>
-					</div>
-				</turbo-frame>
-				<br />
+				<div class="container" id="frame">
+					<div id="hi" v-html="html"></div>
+					<button class="btn btn-primary" v-on:click="hello">Fetch</button>
+				</div>
 			</div>
 			<div class="tab-pane fade" id="docs" role="tabpanel">
 				<div class="container" title="Content">
@@ -122,13 +117,13 @@
 
 		import { Chart, BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend } from 'chart.js';
 		Chart.register(BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend);
-		
+
 		const ChartHandling = {
 			data: {
 				active: null
 			},
 			methods: {
-				pops: function(type, legend) {
+				pops: function (type, legend) {
 					let chart = this;
 					this.clear();
 					fetch("/pops").then(response => {
@@ -185,6 +180,27 @@
 		}
 
 		new Vue(EventHandling).$mount("#message");
+	</script>
+	<script type="module">
+		import Vue from 'vue';
+
+		const HelloHandling = {
+			data: {
+				html: ''
+			},
+			methods: {
+				hello() {
+					const handler = this;
+					fetch("/test").then(response => {
+						response.text().then(data => {
+							handler.html = data;
+						});
+					});
+				},
+			}
+		}
+
+		new Vue(HelloHandling).$mount("#test");
 	</script>
 
 </body>
