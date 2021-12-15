@@ -105,53 +105,52 @@
 			</div>
 			<div class="tab-pane fade" id="chart" role="tabpanel" data-controller="chart">
 				<div class="container">
-					<canvas data-chart-target="canvas"></canvas>
+					<canvas id="canvas"></canvas>
 				</div>
-				<div class="container">
-					<button class="btn btn-primary" data-action="click->chart#clear">Clear</button>
-					<button class="btn btn-primary" data-action="click->chart#bar">Bar</button>
-					<button class="btn btn-primary" data-action="click->chart#pie">Pie</button>
-					<button class="btn btn-primary" data-action="click->chart#doughnut">Doughnut</button>
+				<div class="container" id=chooser>
 				</div>
 			</div>
 		</div>
 	</main>
 
 	<script type="module">
-		import { Application, Controller } from '@hotwired/stimulus';
-		window.Stimulus = Application.start();
-
 		import { Chart, BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend } from 'chart.js';
 		Chart.register(BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend);
-
-		Stimulus.register("chart", class extends Controller {
-			static targets = ["canvas"]
-			pops(type, legend) {
+	</script>
+	<script type="text/babel">
+		class ChartChooser extends React.Component {
+			constructor(props) {
+				super(props);
+				this.state = {};
+				this.clear = this.clear.bind(this);
+				this.bar = this.bar.bind(this);
+			};
+			bar() {
 				let chart = this;
 				this.clear();
 				fetch("/pops").then(response => {
 					response.json().then(data => {
-						data.type = type;
-						data.options.plugins.legend.display = legend;
-						chart.active = new Chart(chart.canvasTarget, data);
+						data.type = "bar";
+						chart.setState({ active: new Chart(document.getElementById("canvas"), data) });
 					});
-				});;
+				});
 			};
 			clear() {
-				if (this.active) {
-					this.active.destroy();
+				if (this.state.active) {
+					this.state.active.destroy();
 				}
 			};
-			bar() {
-				this.pops("bar", false);
-			};
-			pie() {
-				this.pops("pie", true);
-			};
-			doughnut() {
-				this.pops("doughnut", true);
-			};
-		});
+			render() {
+				return <div>
+					<button className="btn btn-primary" onClick={this.clear}>Clear</button>
+					<button className="btn btn-primary" onClick={this.bar}>Bar</button>
+				</div>;
+			}
+		}
+		ReactDOM.render(
+			<ChartChooser />,
+			document.getElementById('chooser')
+		);
 	</script>
 	<script type="text/babel">
 		class Auth extends React.Component {
@@ -163,7 +162,7 @@
 				let hello = this;
 				fetch("/user").then(response => {
 					response.json().then(data => {
-						hello.setState({user: `Logged in as: ${data.name}`});
+						hello.setState({ user: `Logged in as: ${data.name}` });
 					});
 				});
 			};
@@ -179,24 +178,24 @@
 				this.change = this.change.bind(this);
 			};
 			greet() {
-				this.setState({message: `Hello ${this.state.name}!`})
+				this.setState({ message: `Hello ${this.state.name}!` })
 			}
 			change(event) {
 				console.log(event)
-				this.setState({name: event.target.value})
+				this.setState({ name: event.target.value })
 			}
 			render() {
 				return <div>
 					<div id="greeting">{this.state.message}</div>
-					<input id="name" name="value" type="text" value={this.state.name} onChange={this.change}/>
+					<input id="name" name="value" type="text" value={this.state.name} onChange={this.change} />
 					<button className="btn btn-primary" onClick={this.greet}>Greet</button>
 				</div>;
 			}
 		}
 		ReactDOM.render(
 			<div className="container" id="hello">
-				<Auth/>
-				<Hello/>
+				<Auth />
+				<Hello />
 			</div>,
 			document.getElementById('hello')
 		);

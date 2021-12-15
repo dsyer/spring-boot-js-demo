@@ -1285,6 +1285,73 @@ class Hello extends React.Component {
 
 A `render()` method has to return a single element, so we have to wrap the content in a `<div>`. The other thing that is worth pointing out is that the transfer of state from the HTML to the Javascript is not automtatic - there's no "two-way model" in React, and you have to add change listeners to inputs to explicitly update the state. Also we have to call `bind()` on all the component methods that we want to use as listeners (`greet` and `change` in this case).
 
+### Chart Chooser
+
+To migrate the rest of the Stimulus content to React we need to write a new chart chooser. So we can start with a an empty "chart" tab:
+
+```html
+<div class="tab-pane fade" id="chart" role="tabpanel" data-controller="chart">
+	<div class="container">
+		<canvas id="canvas"></canvas>
+	</div>
+	<div class="container" id="chooser"></div>
+</div>
+```
+
+and attach a `ReactDOM` element to the "chooser":
+
+```javascript
+ReactDOM.render(
+	<ChartChooser/>,
+	document.getElementById('chooser')
+);
+```
+
+where `ChartChooser` is a list of buttons:
+
+```javascript
+class ChartChooser extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = {};
+		this.clear = this.clear.bind(this);
+		this.bar = this.bar.bind(this);
+	};
+	bar() {
+		let chart = this;
+		this.clear();
+		fetch("/pops").then(response => {
+			response.json().then(data => {
+				data.type = "bar";
+				chart.setState({ active: new Chart(document.getElementById("canvas"), data) });
+			});
+		});
+	};
+	clear() {
+		if (this.state.active) {
+			this.state.active.destroy();
+		}
+	};
+	render() {
+		return <div>
+			<button className="btn btn-primary" onClick={this.clear}>Clear</button>
+			<button className="btn btn-primary" onClick={this.bar}>Bar</button>
+		</div>;
+	}
+}
+```
+
+We also need the chart module setup from the Vue sample (it won't work in a `<script type="text/babel">`):
+
+```html
+<script type="module">
+	import { Chart, BarController, BarElement, LinearScale, CategoryScale, Title, Legend } from 'chart.js';
+	Chart.register(BarController, BarElement, LinearScale, CategoryScale, Title, Legend);
+</script>
+```
+
+(Chart.js isn't actually an ESM module, so `Chart` is defined as a global, and we can still use it in our React component, even though that isn't defined in the same script.)
+
 ### Server Side Fragments
 
 ## Building and Bundling with Node.js
