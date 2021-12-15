@@ -744,6 +744,9 @@ and in `index.html` we add an import map and some Javascript to render the chart
 and the new controller implementing the "bar" and "clear" actions from the buttons in the HTML:
 
 ```javascript
+import { Chart, BarController, BarElement, LinearScale, CategoryScale, Title, Legend } from 'chart.js';
+Chart.register(BarController, BarElement, LinearScale, CategoryScale, Title, Legend);
+
 Stimulus.register("chart", class extends Controller {
 	static targets = ["canvas"]
 	bar(type) {
@@ -995,13 +998,10 @@ and here's the Javascript code to render the chart:
 <script type="module">
 	import Vue from 'vue';
 
-	import { Chart, BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend } from 'chart.js';
-	Chart.register(BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend);
+	import { Chart, BarController, BarElement, LinearScale, CategoryScale, Title, Legend } from 'chart.js';
+	Chart.register(BarController, BarElement, LinearScale, CategoryScale, Title, Legend);
 	
 	const ChartHandling = {
-		data: {
-			active: null
-		},
 		methods: {
 			clear() {
 				if (this.active) {
@@ -1013,10 +1013,11 @@ and here's the Javascript code to render the chart:
 				this.clear();
 				fetch("/pops").then(response => {
 					response.json().then(data => {
+						data.type = "bar";
 						chart.active = new Chart(document.getElementById("canvas"), data);
 					});
 				});
-			},
+			}
 		}
 	}
 
