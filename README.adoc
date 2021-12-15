@@ -1025,6 +1025,8 @@ and here's the Javascript code to render the chart:
 </script>
 ```
 
+The sample code also has pie and doughnut chart types and they work the same way.
+
 ### Server Side Rendering
 
 The Vue community seem united on the view that replacing HTML like we do with HTMX and Turbo might be possible (you can store anything in the model) but isn't what Vue was intended for. However, it seems like we owe it to ourselves to see what they mean, so let's try it.
