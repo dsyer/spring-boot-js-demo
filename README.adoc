@@ -973,6 +973,57 @@ const EventHandling = {
 new Vue(EventHandling).$mount("#message");
 ```
 
+The `created` hook is run as part of the Vue component lifecycle, so it's not necessarily going to be run precisely the same time as Stimulus did it, but it's close enough.
+
+We can also replace the chart picker with a a Vue, and then we can get rid of Stimulus entirely, just to see what it looks like.  Here's the chart tab (basically the same as before but without the controller decorations):
+
+```html
+<div class="tab-pane fade" id="chart" role="tabpanel">
+	<div class="container">
+		<canvas id="canvas"></canvas>
+	</div>
+	<div class="container">
+		<button class="btn btn-primary" v-on:click="clear">Clear</button>
+		<button class="btn btn-primary" v-on:click="bar">Bar</button>
+	</div>
+</div>
+```
+
+and here's the Javascript code to render the chart:
+
+```html
+<script type="module">
+	import Vue from 'vue';
+
+	import { Chart, BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend } from 'chart.js';
+	Chart.register(BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend);
+	
+	const ChartHandling = {
+		data: {
+			active: null
+		},
+		methods: {
+			clear() {
+				if (this.active) {
+					this.active.destroy();
+				}
+			},
+			bar() {
+				let chart = this;
+				this.clear();
+				fetch("/pops").then(response => {
+					response.json().then(data => {
+						chart.active = new Chart(document.getElementById("canvas"), data);
+					});
+				});
+			},
+		}
+	}
+
+	new Vue(ChartHandling).$mount("#chart");
+</script>
+```
+
 ### Server Side Rendering
 
 The Vue community seem united on the view that replacing HTML like we do with HTMX and Turbo might be possible (you can store anything in the model) but isn't what Vue was intended for. However, it seems like we owe it to ourselves to see what they mean, so let's try it.

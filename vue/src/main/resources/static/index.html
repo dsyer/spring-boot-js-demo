@@ -104,55 +104,60 @@
 					</div>
 				</div>
 			</div>
-			<div class="tab-pane fade" id="chart" role="tabpanel" data-controller="chart">
+			<div class="tab-pane fade" id="chart" role="tabpanel">
 				<div class="container">
-					<canvas data-chart-target="canvas"></canvas>
+					<canvas id="canvas"></canvas>
 				</div>
 				<div class="container">
-					<button class="btn btn-primary" data-action="click->chart#clear">Clear</button>
-					<button class="btn btn-primary" data-action="click->chart#bar">Bar</button>
-					<button class="btn btn-primary" data-action="click->chart#pie">Pie</button>
-					<button class="btn btn-primary" data-action="click->chart#doughnut">Doughnut</button>
+					<button class="btn btn-primary" v-on:click="clear">Clear</button>
+					<button class="btn btn-primary" v-on:click="bar">Bar</button>
+					<button class="btn btn-primary" v-on:click="pie">Pie</button>
+					<button class="btn btn-primary" v-on:click="doughnut">Doughnut</button>
 				</div>
 			</div>
 		</div>
 	</main>
 
 	<script type="module">
-		import { Application, Controller } from '@hotwired/stimulus';
-		window.Stimulus = Application.start();
+		import Vue from 'vue';
 
 		import { Chart, BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend } from 'chart.js';
 		Chart.register(BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend);
-
-		Stimulus.register("chart", class extends Controller {
-			static targets = ["canvas"]
-			pops(type, legend) {
-				let chart = this;
-				this.clear();
-				fetch("/pops").then(response => {
-					response.json().then(data => {
-						data.type = type;
-						data.options.plugins.legend.display = legend;
-						chart.active = new Chart(chart.canvasTarget, data);
+		
+		const ChartHandling = {
+			data: {
+				active: null
+			},
+			methods: {
+				pops: function(type, legend) {
+					let chart = this;
+					this.clear();
+					fetch("/pops").then(response => {
+						response.json().then(data => {
+							data.type = type;
+							data.options.plugins.legend.display = legend;
+							chart.active = new Chart(document.getElementById("canvas"), data);
+						});
 					});
-				});;
-			};
-			clear() {
-				if (this.active) {
-					this.active.destroy();
+				},
+				clear() {
+					if (this.active) {
+						this.active.destroy();
+					}
+				},
+				bar() {
+					this.pops("bar", false);
+				},
+				pie() {
+					this.pops("pie", true);
+				},
+				doughnut() {
+					this.pops("doughnut", true);
 				}
-			};
-			bar() {
-				this.pops("bar", false);
-			};
-			pie() {
-				this.pops("pie", true);
-			};
-			doughnut() {
-				this.pops("doughnut", true);
-			};
-		});
+			}
+		}
+
+		new Vue(ChartHandling).$mount("#chart");
 	</script>
 	<script type="module">
 		import Vue from 'vue';
