@@ -927,6 +927,58 @@ To receive the dynamic content we need an element that matches `#event-handling`
 
 So the templating happens on the client, and it is triggered by a click using `v-on` from Vue.
 
+If we want to try and replace Hotwired with Vue we could start with the content on the main "message" tab. So we can replace the Stimulus controller bindings with this, for example:
+
+```html
+<div class="tab-pane fade show active" id="message" role="tabpanel">
+	<div class="container">
+		<div id="auth">
+			{{user}}
+		</div>
+		<div id="greeting">{{greeting}}</div>
+		<input id="name" name="value" type="text" v-model="name" />
+		<button class="btn btn-primary" v-on:click="greet">Greet</button>
+	</div>
+</div>
+```
+
+and then hook the `user` and `greeting` properties in through Vue:
+
+```javascript
+import Vue from 'vue';
+
+const EventHandling = {
+	data() {
+		return {
+			greeting: '',
+			name: '',
+			user: 'Unauthenticated'
+		}
+	},
+	created: function () {
+		let hello = this;
+		fetch("/user").then(response => {
+			response.json().then(data => {
+				hello.user = `Logged in as: ${data.name}`;
+			});
+		});
+	},
+	methods: {
+		greet() {
+			this.greeting = `Hello, ${this.name}!`;
+		},
+	}
+}
+
+new Vue(EventHandling).$mount("#message");
+```
+
+### Server Side Rendering
+
+The Vue community seem united on the view that replacing HTML like we do with HTMX and Turbo might be possible (you can store anything in the model) but isn't what Vue was intended for. However, it seems like we owe it to ourselves to see what they mean, so let's try it.
+
+First, the 
+
 ## Dynamic Content with React
 
 Most people who use React probably do more than just a bit of logic and end up with all of the layout and rendering in Javascript. You don't have to do that, and it's quite easy to use just a bit of React to get a feel for it. You could leave it at that and use it as a utility library, like with the other libraries in these samples, or you could evolve to a full Javascript client-side component approach.
@@ -983,7 +1035,7 @@ Because they are not really ESM modules you can do this at the "global" level in
 		}
 		render() {
 			return e(
-				'div',
+				'h1',
 				{},
 				'Hello, world!'
 			);
@@ -993,7 +1045,7 @@ Because they are not really ESM modules you can do this at the "global" level in
 </script>
 ```
 
-It is rendering itself in an element with `id="root"`, so we'd better add one of those as well, for example in the "test" tab:
+The `render()` method returns a function that creates a new DOM element (an `<h1/>` with content "Hello, world!"). It is attached by `ReactDOM` to an element with `id="root"`, so we'd better add one of those as well, for example in the "test" tab:
 
 ```html
 <div class="tab-pane fade" id="test" role="tabpanel">

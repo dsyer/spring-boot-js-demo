@@ -49,13 +49,13 @@
 		<br />
 		<div class="tab-content">
 			<div class="tab-pane fade show active" id="message" role="tabpanel">
-				<div class="container" data-controller="hello">
-					<div id="auth" data-hello-target="auth">
-						Unauthenticated
+				<div class="container">
+					<div id="auth">
+						{{user}}
 					</div>
-					<div id="greeting" data-hello-target="output">Placeholder</div>
-					<input id="name" name="value" type="text" data-hello-target="name" />
-					<button class="btn btn-primary" data-action="click->hello#greet">Greet</button>
+					<div id="greeting">{{greeting}}</div>
+					<input id="name" name="value" type="text" v-model="name" />
+					<button class="btn btn-primary" v-on:click="greet">Greet</button>
 				</div>
 			</div>
 			<div class="tab-pane fade" id="stream" role="tabpanel">
@@ -72,11 +72,7 @@
 						</form>
 					</div>
 				</turbo-frame>
-				<br/>
-				<div class="container" id="event-handling">
-					<p>{{ message }}</p>
-					<button class="btn btn-primary" v-on:click="reverseMessage">Reverse Message</button>
-				</div>
+				<br />
 			</div>
 			<div class="tab-pane fade" id="docs" role="tabpanel">
 				<div class="container" title="Content">
@@ -129,21 +125,6 @@
 		import { Chart, BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend } from 'chart.js';
 		Chart.register(BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend);
 
-		Stimulus.register("hello", class extends Controller {
-			static targets = ["name", "output", "auth"]
-			initialize() {
-				let hello = this;
-				fetch("/user").then(response => {
-					response.json().then(data => {
-						hello.authTarget.textContent = `Logged in as: ${data.name}`;
-					});
-				});
-			}
-			greet() {
-				this.outputTarget.textContent = `Hello, ${this.nameTarget.value}!`;
-			};
-		});
-
 		Stimulus.register("chart", class extends Controller {
 			static targets = ["canvas"]
 			pops(type, legend) {
@@ -179,20 +160,27 @@
 		const EventHandling = {
 			data() {
 				return {
-					message: 'Hello Vue.js!'
+					greeting: '',
+					name: '',
+					user: 'Unauthenticated'
 				}
 			},
+			created: function () {
+				let hello = this;
+				fetch("/user").then(response => {
+					response.json().then(data => {
+						hello.user = `Logged in as: ${data.name}`;
+					});
+				});
+			},
 			methods: {
-				reverseMessage() {
-					this.message = this.message
-						.split('')
-						.reverse()
-						.join('')
-				}
+				greet() {
+					this.greeting = 'Hello, ' + this.name + '!';
+				},
 			}
 		}
 
-		new Vue(EventHandling).$mount("#event-handling");
+		new Vue(EventHandling).$mount("#message");
 	</script>
 
 </body>
