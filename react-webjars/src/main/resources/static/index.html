@@ -56,15 +56,6 @@
 				</div>
 			</div>
 			<div class="tab-pane fade" id="test" role="tabpanel">
-				<turbo-frame id="turbo">
-					<div class="container" id="frame">
-						<div id="hello"></div>
-						<div id="world"></div>
-						<form action="/test" method="post">
-							<button class="btn btn-primary" type="submit">Fetch</button>
-						</form>
-					</div>
-				</turbo-frame>
 				<div class="container" id="root"></div>
 			</div>
 			<div class="tab-pane fade" id="docs" role="tabpanel">
@@ -112,6 +103,7 @@
 		Chart.register(BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend);
 		window.Chart = Chart;
 	</script>
+
 	<script type="text/babel">
 		class ChartChooser extends React.Component {
 			constructor(props) {
@@ -161,6 +153,7 @@
 			document.getElementById('chooser')
 		);
 	</script>
+
 	<script type="text/babel">
 		class Auth extends React.Component {
 			constructor(props) {
@@ -190,7 +183,6 @@
 				this.setState({ message: `Hello ${this.state.name}!` })
 			}
 			change(event) {
-				console.log(event)
 				this.setState({ name: event.target.value })
 			}
 			render() {
@@ -207,6 +199,34 @@
 				<Hello />
 			</div>,
 			document.getElementById('hello')
+		);
+	</script>
+
+	<script type="text/babel">
+		class Content extends React.Component {
+			constructor(props) {
+				super(props);
+				this.state = { html: '' };
+				this.fetch = this.fetch.bind(this);
+			};
+			fetch() {
+				let hello = this;
+				fetch("/test").then(response => {
+					response.text().then(data => {
+						hello.setState({ html: data });
+					});
+				});
+			}
+			render() {
+				return <div>
+					<div dangerouslySetInnerHTML={{ __html: this.state.html }}></div>
+					<button className="btn btn-primary" onClick={this.fetch}>Fetch</button>
+				</div>;
+			}
+		}
+		ReactDOM.render(
+			<Content />,
+			document.getElementById('root')
 		);
 	</script>
 

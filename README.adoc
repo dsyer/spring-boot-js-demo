@@ -14,7 +14,7 @@ These samples explore the different options that Spring Boot developers have for
 
 * `react`: is the `react-webjars` sample, but with the Javascript build steps from the `nodejs` sample.
 
-If you want to know more about React and Spring there is a https://spring.io/guides/tutorials/react-and-spring-data-rest/[tutorial on the Spring website]. There is also content on https://angular.io[Angular] via another https://spring.io/guides/tutorials/spring-security-and-angular-js/[tutorial on the Spring website] and the related getting started content https://github.com/dsyer/spring-boot-angular[here].
+If you want to know more about React and Spring there is a https://spring.io/guides/tutorials/react-and-spring-data-rest/[tutorial on the Spring website]. There is also content on https://angular.io[Angular] via another https://spring.io/guides/tutorials/spring-security-and-angular-js/[tutorial on the Spring website] and the related getting started content https://github.com/dsyer/spring-boot-angular[here]. The https://spring.io[spring.io] website (https://github.com/spring-io/sagan[source code]) is also a Node.js build and uses a completely different toolchain and set of libraries. Another source of alternative approaches is https://www.jhipster.tech/[JHipster] which also has support for a few of the libraries used here. Finally the https://github.com/spring-projects/spring-petclinic[Petclinic], while it has no Javascript, does have some client side code in the stylesheets and a build process driven from Maven.
 
 ## Getting Started
 
@@ -45,15 +45,15 @@ $ java -jar target/js-demo-htmx-0.0.1.jar
 
 ## Narrowing the Choices
 
-Browser application development is a huge landscape of ever-changing options and choices. It would be impossible to present all those options in one coherent picture, so we have intentionally limited the scope of tools and frameworks we look at. We start with a bias of wanting to find something that works with a light touch, or at least incrementally adoptable. There is also the previously mentioned bias towards libraries that work well with server-side renderers - those that deal with fragments and subtrees of HTML. We have used Javascript https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules[ESM] wherever possible, since most browsers now support that, but equally most libraries that publish a module to `import` also have an equivalent bundle you can `require`.
+Browser application development is a huge landscape of ever-changing options and choices. It would be impossible to present all those options in one coherent picture, so we have intentionally limited the scope of tools and frameworks we look at. We start with a bias of wanting to find something that works with a light touch, or is at least incrementally adoptable. There is also the previously mentioned bias towards libraries that work well with server-side renderers - those that deal with fragments and subtrees of HTML. Also, we have used Javascript https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules[ESM] wherever possible, since most browsers now support that. However, most libraries that publish a module to `import` also have an equivalent bundle you can `require`, so you can always stick to that if you prefer.
 
-Many of the samples use https://webjars.org[Webjars] to deliver the Javascript (and CSS) assets to the client. This is very easy and sensible for an application with a Java backend. Not all the samples use Webjars though, and it wouldn't be hard to convert them to either use a CDN (like https://unpkg.com[unpkg.com] or https://jsdeliver.com[jsdelivr.com]) or a build time Node.js bundler. The samples here that do have a bundler use https://rollupjs.org/guide/en/[Rollup], but you could just as well use https://webpack.js.org/[Webpack], for instance. They also use straight https://www.npmjs.com/[NPM] and not https://classic.yarnpkg.com/[Yarn] or https://gulpjs.com/[Gulp], which are both popular choices and could very well be used instead. All the samples use https://getbootstrap.com/[Bootstrap] for CSS, but other choices are available.
+Many of the samples use https://webjars.org[Webjars] to deliver the Javascript (and CSS) assets to the client. This is very easy and sensible for an application with a Java backend. Not all the samples use Webjars though, and it wouldn't be hard to convert the ones that do to either use a CDN (like https://unpkg.com[unpkg.com] or https://jsdeliver.com[jsdelivr.com]) or a build time Node.js bundler. The samples here that do have a bundler use https://rollupjs.org/guide/en/[Rollup], but you could just as well use https://webpack.js.org/[Webpack], for instance. They also use straight https://www.npmjs.com/[NPM] and not https://classic.yarnpkg.com/[Yarn] or https://gulpjs.com/[Gulp], which are both popular choices. All the samples use https://getbootstrap.com/[Bootstrap] for CSS, but other choices are available.
 
-There are also choices that can be made on the server side. We have used https://docs.spring.io/spring-framework/docs/current/reference/html/web-reactive.html#spring-webflux[Spring Webflux] but https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#spring-web[Spring MVC] would work identically. We have used Maven as a build tool, but using Gradle it would be easy to achieve the same goals. All the samples actually have a static home page (not even rendered as a template), but they all have some dynamic content, and we have chosen https://github.com/samskivert/jmustache[JMustache] for that. https://www.thymeleaf.org/[Thymeleaf] (and other templating engines) would work just as well. In fact Thymeleaf has built-in support for fragments and that can be quite useful when you are updating parts of a page dynamically. You could do that same with Mustache (probably) with a bit of work, but we didn't need it in these samples, so there wasn't any point.
+There are also choices that can be made on the server side. We have used https://docs.spring.io/spring-framework/docs/current/reference/html/web-reactive.html#spring-webflux[Spring Webflux] but https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#spring-web[Spring MVC] would work identically. We have used Maven as a build tool, but using Gradle it would be easy to achieve the same goals. All the samples actually have a static home page (not even rendered as a template), but they all have some dynamic content, and we have chosen https://github.com/samskivert/jmustache[JMustache] for that. https://www.thymeleaf.org/[Thymeleaf] (and other templating engines) would work just as well. In fact Thymeleaf has built-in support for fragments and that can be quite useful when you are updating parts of a page dynamically, which is one of our goals. You could do that same with Mustache (probably) with a bit of work, but we didn't need it in these samples.
 
 ## Create a New Application
 
-To get started with Spring Boot and client-side development, let's start at the beginning, with an empty app from https://start.spring.io[Spring Initializr]. You can go to the website and download a project with web dependencies (select Webflux or WebMVC) and open it up in your IDE. To generate a project from the command line you can use `curl`, starting form an empty directory:
+To get started with Spring Boot and client-side development, let's start at the beginning, with an empty app from https://start.spring.io[Spring Initializr]. You can go to the website and download a project with web dependencies (select Webflux or WebMVC) and open it up in your IDE. Or to generate a project from the command line you can use `curl`, starting form an empty directory:
 
 ```
 $ curl https://start.spring.io/starter.tgz -d dependencies=webflux -d name=js-demo | tar -xzvf -
@@ -136,11 +136,11 @@ and then in `index.html` instead of the CDN we use a resource path inside the ap
 ...
 ```
 
-If you rebuild and/or re-run the application you will see nice vanilla Bootstrap styles instead of the boring default browser versions. Spring Boot uses the `webjars-locator-core` to locate the version and exact location of the resource in the classpath. The browser just sucks that stylesheet straight down the HTTP straw.
+If you rebuild and/or re-run the application you will see nice vanilla Bootstrap styles instead of the boring default browser versions. Spring Boot uses the `webjars-locator-core` to locate the version and exact location of the resource in the classpath, and the browser sucks that stylesheet into the page.
 
 ### Show Me Some Javascript
 
-Bootstrap is also a Javascript library, so we can start to use it more fully by taking advantage of that aspect. We can add the library in `index.html` like this:
+Bootstrap is also a Javascript library, so we can start to use it more fully by taking advantage of that. We can add the Bootstrap library in `index.html` like this:
 
 ```html
 ...
@@ -168,13 +168,13 @@ We said in the introduction that we would use ESM modules where available, and B
 </script>
 ```
 
-There are two parts to this: an "importmap" and a "module". The import map is a feature of the browser allowing you to refer to ESM modules by name and mapping that to a resource. If you run the app now and load it in the browser there should be an error in the console because the ESM bundle of Bootstrap has a dependency on https://popper.js.org/[PopperJS]:
+There are two parts to this: an "importmap" and a "module". The import map is a feature of the browser allowing you to refer to ESM modules by name, mapping the name to a resource. If you run the app now and load it in the browser there should be an error in the console because the ESM bundle of Bootstrap has a dependency on https://popper.js.org/[PopperJS]:
 
 ```
 Uncaught TypeError: Failed to resolve module specifier "@popperjs/core". Relative references must start with either "/", "./", or "../".
 ```
 
-PopperJS is no a mandatory transitive dependency of the Bootstrap Webjar, so we have to include that as well in `pom.xml`:
+PopperJS is not a mandatory transitive dependency of the Bootstrap Webjar, so we have to include it in our `pom.xml`:
 
 ```xml
 <dependency>
@@ -184,7 +184,7 @@ PopperJS is no a mandatory transitive dependency of the Bootstrap Webjar, so we 
 </dependency>
 ```
 
-and then it can be added to the import map:
+(Webjars use the "__" infix instead of a "@" prefix for namespaced NPM module names.) Then it can be added to the import map:
 
 ```html
 <script type="importmap">
@@ -201,7 +201,7 @@ and this will fix the console error.
 
 ## Normalizing Resource Paths
 
-The resource paths inside a Webjar (e.g. `/bootstrap/dist/js/bootstrap.esm.min.js`) are not standardized - that is there is no naming convention that allows you to guess the location of the ESM module inside a Webjar, or an NPM module, which amounts to the same thing. But there are some conventions in NPM modules that make it possible to automate, namely most modules have a `package.json` with a "module" field, e.g. from Bootstrap:
+The resource paths inside a Webjar (e.g. `/bootstrap/dist/js/bootstrap.esm.min.js`) are not standardized - that is there is no naming convention that allows you to guess the location of the ESM module inside a Webjar, or an NPM module, which amounts to the same thing. But there are some conventions in NPM modules that make it possible to automate: most modules have a `package.json` with a "module" fiel. E.g. from Bootstrap you can find the version and the module resource path:
 
 ```json
 {
@@ -227,7 +227,7 @@ CDNs like unpkg.com make use of this information, so you can use them when you k
 </script>
 ```
 
-It would be nice to be able to do the same with `/webjars` resource paths. That's what the `NpmVersionResolver` does in all the samples. You don't need it if you don't use Webjars and you can use a CDN, and you don't need it if you don't mind manually opening up all the `package.json` files and looking for the module path. But it's nice to not have to think about that. There's a https://github.com/spring-projects/spring-boot/issues/28715[feature request] asking for this feature to be included in Spring Boot. Another feature of the `NpmVersionResolver` is that it knows about the Webjars metadata, so it can resolve the version of each Webjar from the classpath, and we don't need that `webjars-locator-core` dependency (there's an https://github.com/spring-projects/spring-framework/issues/27619[open issue in Spring Framework] to add this feature).
+It would be nice to be able to do the same with `/webjars` resource paths. That's what the `NpmVersionResolver` does in all the samples. You don't need it if you don't use Webjars and you can use a CDN, and you don't need it if you don't mind manually opening up all the `package.json` files and looking for the module path. But it's nice to not have to think about that. There's a https://github.com/spring-projects/spring-boot/issues/28715[feature request] asking for this to be included in Spring Boot. Another feature of the `NpmVersionResolver` is that it knows about the Webjars metadata, so it can resolve the version of each Webjar from the classpath, and we don't need that `webjars-locator-core` dependency (there's an https://github.com/spring-projects/spring-framework/issues/27619[open issue in Spring Framework] to add this feature).
 
 So in the sample the import map is like this:
 
@@ -260,7 +260,7 @@ We might as well use the Bootstrap styles now we have it all working. So how abo
 </header>
 ```
 
-The second (default inactive) tab is called "stream" because that's going to be part of the HTMX sample. The tab contents look like this in the `<main/>` section:
+The second (default inactive) tab is called "stream" because part of the samples will be exploring the use of Server Sent Event streams. The tab contents look like this in the `<main/>` section:
 
 ```html
 <main>
@@ -368,7 +368,7 @@ This does a GET to `/user` when the page loads and swaps the content of the elem
 
 image::images/user.png[]
 
-### SSE Streams with HTMX
+### SSE Streams
 
 There are many other neat things you can do with HTMX, and one of those is to render a https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#event_stream_format[Server Sent Event (SSE)] stream. First we'll add an endpoint to the backend app:
 
@@ -413,7 +413,7 @@ HTMX can inject those messages into our page. Here's how in `index.html` added t
 
 We connect to the `/stream` using the `connect:/stream` attribute and then pull event data out using `swap:message`. Actually "message" is the default event type, but SSE payloads can also specify other types by including a line starting with `event:`, and so you could have a stream that multiplexes many different event types and have them each affect the HTML in different ways.
 
-The endpoint in our backend above is very simple: it just sends back plain strings, but it could do more. E.g. it could send back fragments of HTML and they would be injected into the page. The sample applications do it with a custom Spring Webflux component named `CompositeViewRenderer` (as requested https://github.com/spring-projects/spring-framework/issues/27652[here] for the Framework), where they return a `Flux<Rendering>` (in MVC it would be `Flux<ModelAndView>`). It enables an endpoint to stream dynamic view renderings:
+The endpoint in our backend above is very simple: it just sends back plain strings, but it could do more. E.g. it could send back fragments of HTML and they would be injected into the page. The sample applications do it with a custom Spring Webflux component named `CompositeViewRenderer` (requested as a feature https://github.com/spring-projects/spring-framework/issues/27652[here] for the Framework), where `@Contoller` method can return a `Flux<Rendering>` (in MVC it would be `Flux<ModelAndView>`). It enables an endpoint to stream dynamic views:
 
 ```java
 @GetMapping(path = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -454,17 +454,9 @@ which in turn works automatically because we included JMustache on the classpath
 
 ### Replacing and Enhancing HTML Dynamically
 
-HTMX can do more. Instead of an SSE stream, and endpoint can return a regular HTTP response, but compose it as a set of elements to swap on the page. HTMX calls this an "out of band" swap because it involves enhancing content of elements on the page that are not the one that was clicked or annotated. To see this work we can add another tab:
+HTMX can do more. Instead of an SSE stream, and endpoint can return a regular HTTP response, but compose it as a set of elements to swap on the page. HTMX calls this an "out of band" swap because it involves enhancing content of elements on the page that are not the same one that triggered the download.
 
-```html
-<nav class="nav nav-tabs">
-	...
-	<a class="nav-link" data-bs-toggle="tab" data-bs-target="#test" href="#">Test</a>
-</nav>
-...
-```
-
-and the content
+To see this work we can add another tab with some HTMX-enabled content:
 
 ```html
 <div class="tab-pane fade" id="test" role="tabpanel">
@@ -476,7 +468,20 @@ and the content
 </div>
 ```
 
-The button fetches dynamic content from `/test` and sets up 2 empty divs "hello" and "world" to receive it. The `hx-swap="none"` is important - it tells HTMX not to replace the content of the element that triggered the GET. If we have an endpoint that returns this:
+
+Don't forget to add a nav link so the user can see this tab:
+
+```html
+<nav class="nav nav-tabs">
+	...
+	<a class="nav-link" data-bs-toggle="tab" data-bs-target="#test" href="#">Test</a>
+</nav>
+...
+```
+
+The new tab has a button that fetches dynamic content from `/test` and it also sets up 2 empty divs "hello" and "world" to receive the content. The `hx-swap="none"` is important - it tells HTMX not to replace the content of the element that triggered the GET.
+
+If we have an endpoint that returns this:
 
 ```
 $ curl localhost:8080/test
@@ -523,7 +528,7 @@ Another thing that HTMX does is "boost" all the links and form actions in your p
 
 ## Dynamic Content with Hotwired
 
-Hotwired is a little bit similar to HTMX featurewise, so let's replace the libraries. Take out HTMX and add Hotwired (Turbo) to the application. In `pom.xml`:
+Hotwired is a little bit similar to HTMX, so let's replace the libraries an get the app working. Take out HTMX and add Hotwired (Turbo) to the application. In `pom.xml`:
 
 ```xml
 <dependency>
@@ -572,7 +577,7 @@ This lets us do the dynamic content stuff that we already did with HTMX with a f
 </div>
 ```
 
-Turbo works a little differently. So the `<turbo-frame/>` tells Turbo that everything inside is enhanced (a bit like an HTMX boost). And to replace the "hello" and "world" elements on a button click, we need the button to send a POST through a form (Turbo is more opinionated about this than HTMX), and the `/test` endpoint to send back some `<turbo-stream/>` fragments:
+Turbo works a little differently. So the `<turbo-frame/>` tells Turbo that everything inside is enhanced (a bit like an HTMX boost). And to replace the "hello" and "world" elements on a button click, we need the button to send a POST through a form, not just a plain GET (Turbo is more opinionated about this than HTMX). The `/test` endpoint then sends back some `<turbo-stream/>` fragments:
 
 ```html
 <turbo-stream action="replace" target="hello">
@@ -623,7 +628,7 @@ Both Turbo and HTMX allow you to target elements for dynamic content by id or by
 
 ### Stimulus
 
-There is another library in Hotwired called https://stimulus.hotwired.dev[Stimulus] that lets you add more customized behaviour than is possible with Turno using small amounts of Javascript. It comes in handy if you have an endpoint in your backend service that returns JSON not HTML, for instance. We can get started with Stimulus by adding it as a dependency in `pom.xml`:
+There is another library in Hotwired called https://stimulus.hotwired.dev[Stimulus] that lets you add more customized behaviour using small amounts of Javascript. It comes in handy if you have an endpoint in your backend service that returns JSON not HTML, for instance. We can get started with Stimulus by adding it as a dependency in `pom.xml`:
 
 ```xml
 <dependency>
@@ -658,7 +663,7 @@ Then we are in good shape to replace the piece of the main "message" tab that we
 </div>
 ```
 
-Notice the `data-*` attributes. There is a `controller` ("hello") that we need to implement, with an action that says "when this button is clicked, call the function 'greet' on the 'hello' controller", and some decorations that identify which elements have input and output for the controller (the `data-hello-target` attributes). The Javascript to implement the custom message looks like this:
+Notice the `data-*` attributes. There is a `controller` ("hello") declared on the container `<div>` that we need to implement. Its action in the button element says "when this button is clicked, call the function 'greet' on the 'hello' controller". And there are some decorations that identify which elements have input and output for the controller (the `data-hello-target` attributes). The Javascript to implement the custom message renderer looks like this:
 
 ```html
 <script type="module">
@@ -767,7 +772,7 @@ Stimulus.register("chart", class extends Controller {
 });
 ```
 
-To service this we need an endpoint with some chart data (estimated world population by continent according to Wikipedia):
+To service this we need a `/pops` endpoint with some chart data (estimated world population by continent according to Wikipedia):
 
 ```
 $ curl localhost:8080/pops | jq .
@@ -860,7 +865,7 @@ and then we can add a new tab with some "code snippets" (just junk content in th
 </div>
 ```
 
-Which looks like this if the user selects the "One" block type:
+It looks like this if the user selects the "One" block type:
 
 image::images/one.png[]
 
@@ -930,7 +935,7 @@ To receive the dynamic content we need an element that matches `#event-handling`
 
 So the templating happens on the client, and it is triggered by a click using `v-on` from Vue.
 
-If we want to try and replace Hotwired with Vue we could start with the content on the main "message" tab. So we can replace the Stimulus controller bindings with this, for example:
+If we want to replace Hotwired with Vue we could start with the content on the main "message" tab. So we can replace the Stimulus controller bindings with this, for example:
 
 ```html
 <div class="tab-pane fade show active" id="message" role="tabpanel">
@@ -1025,7 +1030,7 @@ and here's the Javascript code to render the chart:
 </script>
 ```
 
-The sample code also has pie and doughnut chart types and they work the same way.
+The sample code also has "pie" and "doughnut" in addition to the "bar" chart type, and they work the same way.
 
 ### Server Side Fragments
 
@@ -1068,7 +1073,7 @@ It has a click handler referring to a "hello" method, and a div that is waiting 
 
 To make it work we just need to remove the `<turbo-frame/>` elements from the server side template (reverting to what we had in the HTMX sample).
 
-So it is definitely possible to replace our Turbo (and HTMX) code with Vue (or another library or even plain Javscript), but we can see from the sample that it inevitably involves some boilerplate Javascript.
+It is definitely possible to replace our Turbo (and HTMX) code with Vue (or another library or even plain Javscript), but we can see from the sample that it inevitably involves some boilerplate Javascript.
 
 ## Plain Javascript with SSE Stream
 
@@ -1127,7 +1132,7 @@ and the module map in `index.html`:
 </script>
 ```
 
-React is not packaged as an ESM bundle (yet, anyway), so there is no "module" metadata and we have to hard code the resource paths like this. The "umd" in the resource path refers to "Universal Module Definition" which is an older attempt at modular Javascript. It's close enough that if you squint you can use it in a similar way sometimes.
+React is not packaged as an ESM bundle (yet, anyway), so there is no "module" metadata and we have to hard code the resource paths like this. The "umd" in the resource path refers to "Universal Module Definition" which is an older attempt at modular Javascript. It's close enough that if you squint you can use it in a similar way.
 
 With those in place you can import the functions and objects they define:
 
@@ -1171,7 +1176,7 @@ If you run that it should work and it should say "Hello World" in that tab.
 
 ### HTML in Javascript: XJS
 
-Most React apps use HTML embedded in the Javascript in a templating language called "XJS" (which can be used in other ways but is actually part of React now). The hello world sample above looks lilke this:
+Most React apps use HTML embedded in the Javascript via a templating language called "XJS" (which can be used in other ways but is actually part of React now). The hello world sample above looks like this:
 
 ```html
 <script type="text/babel">
@@ -1187,7 +1192,7 @@ Most React apps use HTML embedded in the Javascript in a templating language cal
 </script>
 ```
 
-The component defines a custom element (the `<Hello/>`) that match the class name of the component, and conventionally starts with a capital letter. The `<Hello/>` fragment is an XJS template and the component has a `render()` function that returns an XJS template. Braces are used for interpolation, and `props` is a map including (amongst other things) all the attributes of the custom element (so "name" in this case). Finally there is that `<script type="text/babel">` which is needed to transpile the XJS into actual Javascript that the browser will understand. The script above will do nothing until the browser is taught to recognize this script. We do that by importing another module:
+The component defines a custom element (the `<Hello/>`) that match the class name of the component, and conventionally starts with a capital letter. The `<Hello/>` fragment is an XJS template, and the component also has a `render()` function that returns an XJS template. Braces are used for interpolation, and `props` is a map including all the attributes of the custom element (so "name" in this case). Finally there is that `<script type="text/babel">` which is needed to transpile the XJS into actual Javascript that the browser will understand. The script above will do nothing until the browser is taught to recognize this script. We do that by importing another module:
 
 ```html
 	<script type="importmap">
@@ -1208,11 +1213,11 @@ The component defines a custom element (the `<Hello/>`) that match the class nam
 	</script>
 ```
 
-The React user guide advises against using `@babel/standalone` in a large application because it has to do a lot of work in the browser, and that can be done once at build time which is more efficient. But it's good for trying stuff out, and for apps with small amounts of React code, like this one.
+The React user guide advises against using `@babel/standalone` in a large application because it has to do a lot of work in the browser, and the same work can be done once at build time which is more efficient. But it's good for trying stuff out, and for apps with small amounts of React code, like this one.
 
 ### Basic Event and User Input Handling
 
-We are now in a position where we can migrate the main "message" tab to React. So let's modify the `Hello` component and attach it to a different element. The message tab can be stripped down to an empty elementm ready to accept the React content:
+We are now in a position where we can migrate the main "message" tab to React. So let's modify the `Hello` component and attach it to a different element. The message tab can be stripped down to an empty element ready to accept the React content:
 
 ```html
 <div class="tab-pane fade show active" id="message" role="tabpanel">
@@ -1351,9 +1356,56 @@ We also need the chart module setup from the Vue sample (it won't work in a `<sc
 </script>
 ```
 
-Chart.js isn't actually an ESM module, so you can't import it into a Babel script. So we import it in a separate module, and `Chart` has to be defined as a global, so we can still use it in our React component.
+Chart.js isn't actually an ESM module, so you can't import it into a Babel script. We import it in a separate module, and `Chart` has to be defined as a global so we can still use it in our React component.
 
 ### Server Side Fragments
+
+To render the "test" tab with React we can start with the tab itself, empty again to accept content from React:
+
+```html
+<div class="tab-pane fade" id="test" role="tabpanel">
+	<div class="container" id="root"></div>
+</div>
+```
+
+with a binding to the "root" element in React:
+
+```javascript
+ReactDOM.render(
+	<Content />,
+	document.getElementById('root')
+);
+```
+
+and then we can implement the `<Content/>` as a component that fetches HTML from the `/test` endpoint:
+
+```javascript
+class Content extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = { html: '' };
+		this.fetch = this.fetch.bind(this);
+	};
+	fetch() {
+		let hello = this;
+		fetch("/test").then(response => {
+			response.text().then(data => {
+				hello.setState({ html: data });
+			});
+		});
+	}
+	render() {
+		return <div>
+			<div dangerouslySetInnerHTML={{ __html: this.state.html }}></div>
+			<button className="btn btn-primary" onClick={this.fetch}>Fetch</button>
+		</div>;
+	}
+}
+```
+
+The `dangerouslySetInnerHTML` attribute is delibrately named by React to discourage people from using it with content that is collected directly from users (XSS issues). But we get that content from the server so we can put our trust in the XSS protection there and ignore the warning.
+
+If we use that `<Content/>` component and the SSE loader from the sample above then we can get rid of Hotwired altogether from this sample as well.
 
 ## Building and Bundling with Node.js
 
