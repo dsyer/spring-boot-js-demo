@@ -1210,6 +1210,83 @@ The component defines a custom element (the `<Hello/>`) that match the class nam
 
 The React user guide advises against using `@babel/standalone` in a large application because it has to do a lot of work in the browser, and that can be done once at build time which is more efficient. But it's good for trying stuff out, and for apps with small amounts of React code, like this one.
 
+### Basic Event and User Input Handling
+
+We are now in a position where we can migrate the main "message" tab to React. So let's modify the `Hello` component and attach it to a different element. The message tab can be stripped down to an empty elementm ready to accept the React content:
+
+```html
+<div class="tab-pane fade show active" id="message" role="tabpanel">
+	<div class="container" id="hello"></div>
+</div>
+```
+
+We can anticipate that we will need a second component to render the authenticated user name, so let's start with this to attach some code to the element in the tab above:
+
+```javascript
+ReactDOM.render(
+	<div className="container" id="hello">
+		<Auth/>
+		<Hello/>
+	</div>,
+	document.getElementById('hello')
+);
+```
+
+Then we can define the `Auth` component like this:
+
+```javascript
+class Auth extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = { user: 'Unauthenticated' };
+	};
+	componentDidMount() {
+		let hello = this;
+		fetch("/user").then(response => {
+			response.json().then(data => {
+				hello.setState({user: `Logged in as: ${data.name}`});
+			});
+		});
+	};
+	render() {
+		return <div id="auth">{this.state.user}</div>;
+	}
+};
+```
+
+The lifecycle callback in this case is `componentDidMount` which is called by React when the component is activated, so that's where we put our initialization code.
+
+The other component is the one that transfers the "name" input to a greeting:
+
+```javascript
+class Hello extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = { name: '', message: '' };
+		this.greet = this.greet.bind(this);
+		this.change = this.change.bind(this);
+	};
+	greet() {
+		this.setState({message: `Hello ${this.state.name}!`})
+	}
+	change(event) {
+		console.log(event)
+		this.setState({name: event.target.value})
+	}
+	render() {
+		return <div>
+			<div id="greeting">{this.state.message}</div>
+			<input id="name" name="value" type="text" value={this.state.name} onChange={this.change}/>
+			<button className="btn btn-primary" onClick={this.greet}>Greet</button>
+		</div>;
+	}
+}
+```
+
+A `render()` method has to return a single element, so we have to wrap the content in a `<div>`. The other thing that is worth pointing out is that the transfer of state from the HTML to the Javascript is not automtatic - there's no "two-way model" in React, and you have to add change listeners to inputs to explicitly update the state. Also we have to call `bind()` on all the component methods that we want to use as listeners (`greet` and `change` in this case).
+
+### Server Side Fragments
+
 ## Building and Bundling with Node.js
 
 ## Bundling a React App with Node.js

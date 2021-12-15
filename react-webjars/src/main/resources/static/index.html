@@ -54,14 +54,7 @@
 		<br />
 		<div class="tab-content">
 			<div class="tab-pane fade show active" id="message" role="tabpanel">
-				<div class="container" data-controller="hello">
-					<div id="auth" data-hello-target="auth">
-						Unauthenticated
-					</div>
-					<div id="greeting" data-hello-target="output">Placeholder</div>
-					<input id="name" name="value" type="text" data-hello-target="name" />
-					<button class="btn btn-primary" data-action="click->hello#greet">Greet</button>
-				</div>
+				<div class="container" id="hello"></div>
 			</div>
 			<div class="tab-pane fade" id="stream" role="tabpanel">
 				<div class="container">
@@ -131,21 +124,6 @@
 		import { Chart, BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend } from 'chart.js';
 		Chart.register(BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, Title, Legend);
 
-		Stimulus.register("hello", class extends Controller {
-			static targets = ["name", "output", "auth"]
-			initialize() {
-				let hello = this;
-				fetch("/user").then(response => {
-					response.json().then(data => {
-						hello.authTarget.textContent = `Logged in as: ${data.name}`;
-					});
-				});
-			}
-			greet() {
-				this.outputTarget.textContent = `Hello, ${this.nameTarget.value}!`;
-			};
-		});
-
 		Stimulus.register("chart", class extends Controller {
 			static targets = ["canvas"]
 			pops(type, legend) {
@@ -176,14 +154,51 @@
 		});
 	</script>
 	<script type="text/babel">
-		class Hello extends React.Component {
+		class Auth extends React.Component {
+			constructor(props) {
+				super(props);
+				this.state = { user: 'Unauthenticated' };
+			};
+			componentDidMount() {
+				let hello = this;
+				fetch("/user").then(response => {
+					response.json().then(data => {
+						hello.setState({user: `Logged in as: ${data.name}`});
+					});
+				});
+			};
 			render() {
-				return <h1>Hello, {this.props.name}!</h1>;
+				return <div id="auth">{this.state.user}</div>;
+			}
+		};
+		class Hello extends React.Component {
+			constructor(props) {
+				super(props);
+				this.state = { name: '', message: '' };
+				this.greet = this.greet.bind(this);
+				this.change = this.change.bind(this);
+			};
+			greet() {
+				this.setState({message: `Hello ${this.state.name}!`})
+			}
+			change(event) {
+				console.log(event)
+				this.setState({name: event.target.value})
+			}
+			render() {
+				return <div>
+					<div id="greeting">{this.state.message}</div>
+					<input id="name" name="value" type="text" value={this.state.name} onChange={this.change}/>
+					<button className="btn btn-primary" onClick={this.greet}>Greet</button>
+				</div>;
 			}
 		}
 		ReactDOM.render(
-			<Hello name="World"/>,
-			document.getElementById('root')
+			<div className="container" id="hello">
+				<Auth/>
+				<Hello/>
+			</div>,
+			document.getElementById('hello')
 		);
 	</script>
 
