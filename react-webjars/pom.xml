@@ -61,16 +61,6 @@
 			<version>2.10.1</version>
 		</dependency>
 		<dependency>
- 			<groupId>org.webjars.npm</groupId>
-			<artifactId>hotwired__stimulus</artifactId>
-			<version>3.0.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.webjars.npm</groupId>
-			<artifactId>hotwired__turbo</artifactId>
-			<version>7.1.0</version>
-		</dependency>
-		<dependency>
 			<groupId>org.webjars.npm</groupId>
 			<artifactId>chart.js</artifactId>
 			<version>3.6.0</version>

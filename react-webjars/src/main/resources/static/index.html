@@ -16,8 +16,6 @@
 			"imports": {
 				"bootstrap": "/npm/bootstrap",
 				"@popperjs/core": "/npm/@popperjs/core",
-				"@hotwired/stimulus": "/npm/hotwired__stimulus",
-				"@hotwired/turbo": "/npm/hotwired__turbo",
 				"chart.js": "/npm/chart.js",
 				"@springio/utils": "/npm/@springio/utils",
 				"react": "/npm/react/umd/react.development.js",
@@ -32,10 +30,6 @@
 		import * as React from 'react';
 		import * as ReactDOM from 'react-dom';
 		import '@babel/standalone';
-	</script>
-	<script type="module">
-		import * as Turbo from '@hotwired/turbo';
-		Turbo.connectStreamSource(new EventSource("/stream"))
 	</script>
 </head>
 
@@ -214,6 +208,13 @@
 			</div>,
 			document.getElementById('hello')
 		);
+	</script>
+
+	<script type="module">
+		var events = new EventSource("/stream");
+		events.onmessage = e => {
+			document.getElementById("load").innerHTML = e.data;
+		}
 	</script>
 
 </body>

@@ -203,12 +203,12 @@
 		new Vue(HelloHandling).$mount("#test");
 	</script>
 
-<script type="module">
-	var events = new EventSource("/stream");
-	events.onmessage = e => {
-		document.getElementById("load").innerHTML = e.data;
-	}
-</script>
+	<script type="module">
+		var events = new EventSource("/stream");
+		events.onmessage = e => {
+			document.getElementById("load").innerHTML = e.data;
+		}
+	</script>
 
 </body>
 
