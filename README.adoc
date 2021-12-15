@@ -1066,7 +1066,32 @@ It has a click handler referring to a "hello" method, and a div that is waiting 
 </script>
 ```
 
-So it is definitely possible to replace our Turbo (and HTMX) code with Vue (or another library or even plain Javscript), but it inevitably involves some boilerplate Javascript.
+To make it work we just need to remove the `<turbo-frame/>` elements from the server side template (reverting to what we had in the HTMX sample).
+
+So it is definitely possible to replace our Turbo (and HTMX) code with Vue (or another library or even plain Javscript), but we can see from the sample that it inevitably involves some boilerplate Javascript.
+
+## Plain Javascript with SSE Stream
+
+Vue isn't really adding a lot of value in this simple HTML replacement use case, and it would add no value at all to the SSE example, so we will go ahead and implement that in vanilla Javascript. Here's a stream tab:
+
+```html
+<div class="tab-pane fade" id="stream" role="tabpanel">
+	<div class="container">
+		<div id="load"></div>
+	</div>
+</div>
+```
+
+and some Javascript to populate it:
+
+```html
+<script type="module">
+	var events = new EventSource("/stream");
+	events.onmessage = e => {
+		document.getElementById("load").innerHTML = e.data;
+	}
+</script>
+```
 
 ## Dynamic Content with React
 
