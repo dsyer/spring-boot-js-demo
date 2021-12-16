@@ -101,21 +101,6 @@ public class JsDemoApplication {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean
-	MustacheViewResolver mustacheViewResolver(Compiler mustacheCompiler, MustacheProperties mustache) {
-		MustacheViewResolver resolver = new MustacheViewResolver(mustacheCompiler);
-		resolver.setPrefix(mustache.getPrefix());
-		resolver.setSuffix(mustache.getSuffix());
-		resolver.setViewNames(mustache.getViewNames());
-		resolver.setRequestContextAttribute(mustache.getRequestContextAttribute());
-		resolver.setCharset(mustache.getCharsetName());
-		resolver.setOrder(Ordered.LOWEST_PRECEDENCE - 10);
-		resolver.setSupportedMediaTypes(
-				Arrays.asList(MediaType.TEXT_HTML, MediaType.valueOf("text/vnd.turbo-stream.html")));
-		return resolver;
-	}
-
-	@Bean
 	public WebFluxConfigurer configurer() {
 		return new WebFluxConfigurer() {
 			@Override

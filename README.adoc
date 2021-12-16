@@ -199,7 +199,7 @@ PopperJS is not a mandatory transitive dependency of the Bootstrap Webjar, so we
 
 and this will fix the console error.
 
-## Normalizing Resource Paths
+### Normalizing Resource Paths
 
 The resource paths inside a Webjar (e.g. `/bootstrap/dist/js/bootstrap.esm.min.js`) are not standardized - that is there is no naming convention that allows you to guess the location of the ESM module inside a Webjar, or an NPM module, which amounts to the same thing. But there are some conventions in NPM modules that make it possible to automate: most modules have a `package.json` with a "module" fiel. E.g. from Bootstrap you can find the version and the module resource path:
 
@@ -279,9 +279,11 @@ The second (default inactive) tab is called "stream" because part of the samples
 </main>
 ```
 
-Note how one of the tabs is "active" and both have ids that match up with the `data-bs-target` attributes in the header. That's why we need some Javascript - to handle the click events on the tabs so that the correct content is revealed or hidden. The https://getbootstrap.com/docs/5.1/getting-started/introduction/[Bootstrap docs] have loads of examples of different tab styles and layouts. One nice thing about the basic features here is that they can automatically render as drop downs on a narrow device like a mobile phone (with some small changes to the class attributes in the `<nav/>`). In a browser it looks like this:
+Note how one of the tabs is "active" and both have ids that match up with the `data-bs-target` attributes in the header. That's why we need some Javascript - to handle the click events on the tabs so that the correct content is revealed or hidden. The https://getbootstrap.com/docs/5.1/getting-started/introduction/[Bootstrap docs] have loads of examples of different tab styles and layouts. One nice thing about the basic features here is that they can automatically render as drop downs on a narrow device like a mobile phone (with some small changes to the class attributes in the `<nav/>` - you can look at the https://github.com/spring-projects/spring-petclinic[Petclinic] to see how). In a browser it looks like this:
 
 image::images/tabs.png[]
+
+and of course if you click on the "Stream" tab it reveals some different content.
 
 ## Dynamic Content with HTMX
 
@@ -323,7 +325,9 @@ Then we can change the greeting from "Hello World" to something that comes from 
 </div>
 ```
 
-The input field is unadorned, and the button has some `hx-*` attributes that are grabbed by the HTMX library and used to enhance the page. These ones say "when user clicks on this button, send a POST to `/greet`, including the 'name' in the request, and render the result by replacing the content of the 'greeting'". Then all we need is a `/greet` resource in the backend:
+The input field is unadorned, and the button has some `hx-*` attributes that are grabbed by the HTMX library and used to enhance the page. These ones say "when user clicks on this button, send a POST to `/greet`, including the 'name' in the request, and render the result by replacing the content of the 'greeting'". If the user enters "Foo" in the input field, the POST has a form-encoded body of `value=Foo` because "value" is the name of the field identified by `#name`.
+
+Then all we need is a `/greet` resource in the backend:
 
 ```java
 @SpringBootApplication
@@ -351,7 +355,7 @@ public class JsDemoApplication {
 }
 ```
 
-Spring will bind the "name" parameter in the incoming request to the `Greeting` and we convert it to text which is then injected in the `<div id="greeting"/>` on the page. You can use HTMX to inject plain text like this, or whole fragments of HTML. Or you can append (or prepend) to a list of existing elements, like rows in a table, or items in a list.
+Spring will bind the "value" parameter in the incoming request to the `Greeting` and we convert it to text which is then injected in the `<div id="greeting"/>` on the page. You can use HTMX to inject plain text like this, or whole fragments of HTML. Or you can append (or prepend) to a list of existing elements, like rows in a table, or items in a list.
 
 Here's another thing you can do:
 
@@ -364,7 +368,7 @@ Here's another thing you can do:
 </div>
 ```
 
-This does a GET to `/user` when the page loads and swaps the content of the element. The sample app has this and the endpoint returns "Fred" so you see it like this:
+This does a GET to `/user` when the page loads and swaps the content of the element. The sample app has this endpoint and it returns "Fred" so you see it rendered like this:
 
 image::images/user.png[]
 
@@ -454,7 +458,7 @@ which in turn works automatically because we included JMustache on the classpath
 
 ### Replacing and Enhancing HTML Dynamically
 
-HTMX can do more. Instead of an SSE stream, and endpoint can return a regular HTTP response, but compose it as a set of elements to swap on the page. HTMX calls this an "out of band" swap because it involves enhancing content of elements on the page that are not the same one that triggered the download.
+HTMX can still do more. Instead of an SSE stream, an endpoint can return a regular HTTP response, but compose it as a set of elements to swap on the page. HTMX calls this an "out of band" swap because it involves enhancing content of elements on the page that are not the same as the one that triggered the download.
 
 To see this work we can add another tab with some HTMX-enabled content:
 
@@ -545,7 +549,7 @@ Then we can import it into our page by adding an import map:
 	{
 		"imports": {
 			...
-			"@hotwired/turbo": "/npm/hotwired__turbo"
+			"@hotwired/turbo": "/npm/@hotwired/turbo"
 		}
 	}
 </script>
@@ -577,7 +581,7 @@ This lets us do the dynamic content stuff that we already did with HTMX with a f
 </div>
 ```
 
-Turbo works a little differently. So the `<turbo-frame/>` tells Turbo that everything inside is enhanced (a bit like an HTMX boost). And to replace the "hello" and "world" elements on a button click, we need the button to send a POST through a form, not just a plain GET (Turbo is more opinionated about this than HTMX). The `/test` endpoint then sends back some `<turbo-stream/>` fragments:
+Turbo works a little differently than HTMX. The `<turbo-frame/>` tells Turbo that everything inside is enhanced (a bit like an HTMX boost). And to replace the "hello" and "world" elements on a button click, we need the button to send a POST through a form, not just a plain GET (Turbo is more opinionated about this than HTMX). The `/test` endpoint then sends back some `<turbo-stream/>` fragments containing templates with the content we want to replace:
 
 ```html
 <turbo-stream action="replace" target="hello">
@@ -592,6 +596,36 @@ Turbo works a little differently. So the `<turbo-frame/>` tells Turbo that every
         </template>
 </turbo-frame>
 ```
+
+To make Turbo take notice of the incoming `<turbo-stream/>` we need the `/test` endpoint to return a custom `Content-Type: text/vnd.turbo-stream.html` so the implementation looks like this:
+
+```java
+@PostMapping(path = "/test", produces = "text/vnd.turbo-stream.html")
+public Flux<Rendering> test() {
+	return ...;
+}
+```
+
+To serve the custom content type we need a custom view resolver:
+
+```java
+@Bean
+@ConditionalOnMissingBean
+MustacheViewResolver mustacheViewResolver(Compiler mustacheCompiler, MustacheProperties mustache) {
+	MustacheViewResolver resolver = new MustacheViewResolver(mustacheCompiler);
+	resolver.setPrefix(mustache.getPrefix());
+	resolver.setSuffix(mustache.getSuffix());
+	resolver.setViewNames(mustache.getViewNames());
+	resolver.setRequestContextAttribute(mustache.getRequestContextAttribute());
+	resolver.setCharset(mustache.getCharsetName());
+	resolver.setOrder(Ordered.LOWEST_PRECEDENCE - 10);
+	resolver.setSupportedMediaTypes(
+			Arrays.asList(MediaType.TEXT_HTML, MediaType.valueOf("text/vnd.turbo-stream.html")));
+	return resolver;
+}
+```
+
+The above is a copy of the `@Bean` defined automatically by Spring Boot but with an additional supported media type. There is an open https://github.com/spring-projects/spring-boot/issues/28858[feature request] to allow this to be done via `application.properties`.
 
 The result of clicking the "Fetch" button should be to render "Hello" and "World" as before.
 
