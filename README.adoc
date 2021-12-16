@@ -1409,7 +1409,7 @@ If we use that `<Content/>` component and the SSE loader from the sample above t
 
 ## Building and Bundling with Node.js
 
-Webjars are great, but sometimes you need something closer to the Javascript. One problem with Webjars for some people is the size of the jars - the Bootstrap jar is nearly 2MB, most of which will never be used at runtime - and Javascript tooling has a strong focus on reducing that overhead, by not packaging the whole NPM module in your app, and also by bundling assets together so they can be downloaded efficiently. There are also some issues with Java tooling - regarding https://github.com/sass/dart-sass[Sass] in particular, as we found with the https://github.com/spring-projects/spring-petclinic/pull/868[Petclinic recently], there is a lack of good tooling for build time. So maybe we should take a look at options for building with a Node.js toolchain.
+Webjars are great, but sometimes you need something closer to the Javascript. One problem with Webjars for some people is the size of the jars - the Bootstrap jar is nearly 2MB, most of which will never be used at runtime - and Javascript tooling has a strong focus on reducing that overhead, by not packaging the whole NPM module in your app, and also by bundling assets together so they can be downloaded efficiently. There are also some issues with Java tooling - regarding https://github.com/sass/dart-sass[Sass] in particular there is a lack of good tooling, as we found with the https://github.com/spring-projects/spring-petclinic/pull/868[Petclinic recently]. So maybe we should take a look at options for building with a Node.js toolchain.
 
 The first thing you will need is Node.js. There are many ways of obtaining it, and you can use whatever tools you want. We will show how to do it with the https://github.com/eirslett/frontend-maven-plugin[Frontend Plugin].
 
@@ -1458,7 +1458,7 @@ Let's add the plugin to the `turbo` sample. (The final result is the `nodejs` sa
 </plugins>
 ```
 
-Here we have 3 executions: `install-node-and-npm` installs Node.js and NPM locally, `npm-install` runs `npm install` and `npm-build` runs a script to build the Javascript and possibly CSS. We will need a minimal `package.json` to run them all:
+Here we have 3 executions: `install-node-and-npm` installs Node.js and NPM locally, `npm-install` runs `npm install` and `npm-build` runs a script to build the Javascript and possibly CSS. We will need a minimal `package.json` to run them all. If you have `npm` installed you could `npm init` to generate a new one, or just create it manually:
 
 ```
 $ cat > package.json
@@ -1547,11 +1547,11 @@ $ ls node_modules/
 @hotwired  @popperjs  @springio  bootstrap  chart.js  es-module-shims
 ```
 
-It's OK to add all the generated code to your `.gitignore` (i.e. `node/`, `node_modules/`, and `package-lock.json`).
+It's OK to add all the downloaded and generated code to your `.gitignore` (i.e. `node/`, `node_modules/`, and `package-lock.json`).
 
 ### Building with Rollup
 
-The good people who maintain Bootstrap use https://rollupjs.org/guide/en/[Rollup] to bundle their code, so that seems like a valid choice. Feel free to experiment with other tools. To get started with Rollup we will need some development dependencies in `package.json` and a new build script:
+The good people who maintain Bootstrap use https://rollupjs.org/guide/en/[Rollup] to bundle their code, so that seems like a decent choice. One thing it does really well is "tree shaking" to reduce the amount of Javscript you need to ship with your application. Feel free to experiment with other tools. To get started with Rollup we will need some development dependencies in `package.json` and a new build script:
 
 ```json
 {
@@ -1587,22 +1587,7 @@ export default {
 };
 ```
 
-So if we move all the Javascript into `src/main/js/index.js` we would have this in the `<head>` of `index.html`:
-
-```html
-<head>
-	<meta charset="utf-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-	<title>Demo</title>
-	<meta name="description" content="" />
-	<meta name="viewport" content="width=device-width" />
-	<base href="/" />
-	<link rel="stylesheet" type="text/css" href="/npm/bootstrap/dist/css/bootstrap.min.css" />
-	<link rel="stylesheet" type="text/css" href="/npm/@springio/utils/style.css" />
-</head>
-```
-
-and this at the end of the `<body>`:
+So if we move all the Javascript into `src/main/js/index.js` we would have just one `<script>` in `index.html`, for instance at the end of the `<body>`:
 
 ```html
 <script type="module">
@@ -1610,7 +1595,7 @@ import '/index.js';
 </script>
 ```
 
-We keep the CSS for now, and we can deal with a local build for that later. So in `index.js` we have all the `<script>` tag contents mushed together (or we could have split it up into modules and imported them):
+We will keep the CSS for now, and we can deal with a local build for that later. So in `index.js` we have all the `<script>` tag contents mushed together (or we could have split it up into modules and imported them):
 
 ```javascript
 import 'bootstrap';
@@ -1633,18 +1618,18 @@ Stimulus.register("chart", class extends Controller {
 });
 ```
 
-Then if we build and run the app it should all work, and Rollup creates a new `index.js` in `target/classes/static` where it will be picked up by the executable JAR. Because of the action of the "resolve" plugin in Rollup, the new `index.js` has all of the code that is needed to run our application. If any dependencies are packaged as a proper ESM bundle, Rollup will be able to "tree shake" the unused parts of them out. This works for Hotwired Stimulus at least, and most of the others get included wholesale, but the result is still only 750K (most of it Bootstrap):
+If we build and run the app it should all work, and Rollup creates a new `index.js` in `target/classes/static` where it will be picked up by the executable JAR. Because of the action of the "resolve" plugin in Rollup, the new `index.js` has all of the code that is needed to run our application. If any dependencies are packaged as a proper ESM bundle, Rollup will be able to shake the unused parts of them out. This works for Hotwired Stimulus at least, and most of the others get included wholesale, but the result is still only 750K (most of it Bootstrap):
 
 ```
 $ ls -l target/classes/static/index.js 
 -rw-r--r-- 1 dsyer dsyer 768778 Dec 14 09:34 target/classes/static/index.js
 ```
 
-The browser only has to download this once, which is an advantage when the server is HTTP 1.1 (HTTP 2 changes things a bit), and it means the executable JAR isn't bloated with stuff that never gets used. There are other plugin options with Rollup to compress the Javascript, but we'll leave it like that for now.
+The browser has to download this once, which is an advantage when the server is HTTP 1.1 (HTTP 2 changes things a bit), and it means the executable JAR isn't bloated with stuff that never gets used. There are other plugin options with Rollup to compress the Javascript, and we'll see some of those in the next section.
 
 ### Building CSS with Sass
 
-So far we have used plain CSS bundled for us in some NPM libraries. Most applications need their own stylesheets and developers prefer to work with some form of templating library, and build time tooling to compile to CSS. The most prevalent such tool (but not the only one) is probably https://www.npmjs.com/package/sass[Sass]. Bootstrap uses it, and indeed packages its source files in the NPM bundle, so you can extend and adapt the Bootstrap styles to your own requirements.
+So far we have used plain CSS bundled in some NPM libraries. Most applications need their own stylesheets and developers prefer to work with some form of templating library and build time tooling to compile to CSS. The most prevalent such tool (but not the only one) is https://www.npmjs.com/package/sass[Sass]. Bootstrap uses it, and indeed packages its source files in the NPM bundle, so you can extend and adapt the Bootstrap styles to your own requirements.
 
 We can see how that works by building the CSS for our application, even if we don't do much customization. Start with some tooling dependencies in NPM:
 
@@ -1699,12 +1684,11 @@ The CSS processors look in the same place as the main input file, so we can just
 @import 'bootstrap/scss/bootstrap';
 ```
 
-Customizations in SCSS would follow that. Then in `index.js` we add imports for this and the Spring utils library:
+Customizations in SCSS would follow that if we were doing it for real. Then in `index.js` we add imports for this and the Spring utils library:
 
 ```javascript
 import './style.scss';
 import '@springio/utils/style.css';
-
 ...
 ```
 
@@ -1721,7 +1705,7 @@ That's it. We have one `index.js` script driving all the Javascript and CSS for 
 
 ## Bundling a React App with Node.js
 
-To finish up we can apply the same ideas to the `react-webjars` sample, removing Webjars and extracting Javascript and CSS into separate source files. This way, we can finally get rid of the slightly problematic `@babel/standalone`, for instance. We can start from the `react-webjars` sample and add the Frontend Plugin (or otherwise acquire Node.js), and create a `package.json` either manually or via the `npm` CLI. We will need the React dependencies, and also the build time tooling for Babel. Here's what we end up with:
+To finish up we can apply the same ideas to the `react-webjars` sample, removing Webjars and extracting Javascript and CSS into separate source files. This way, we can also finally get rid of the slightly problematic `@babel/standalone`. We can start from the `react-webjars` sample and add the Frontend Plugin as above (or otherwise acquire Node.js), and create a `package.json` either manually or via the `npm` CLI. We will need the React dependencies, and also the build time tooling for Babel. Here's what we end up with:
 
 ```json
 {
@@ -1765,7 +1749,7 @@ We need the `commonjs` plugin because React is not packaged as an ESM and the im
 }
 ```
 
-With those build tool configurations in place we can extract all the Javascript from `index.html` and put it in `src/main/resources/static/index.js`. It's almost a copy paste, but we will want to add the CSS imports:
+With those build tools in place we can extract all the Javascript from `index.html` and put it in `src/main/resources/static/index.js`. It's almost a copy paste, but we will want to add the CSS imports:
 
 ```javascript
 import './style.scss';
@@ -1779,6 +1763,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 ```
 
-You can build that with `npm run build` (or `./mvnw generate-resources`) and it should work.
+You can build that with `npm run build` (or `./mvnw generate-resources`) and it should work - all the tabs have some content and all the buttons generate some content.
 
 Finally we just need to tidy up the `index.html` so that it only imports the `index.js` and `index.css`, and then all the features from the Webjars project should be working as expected.
