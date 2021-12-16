@@ -201,7 +201,7 @@ and this will fix the console error.
 
 ### Normalizing Resource Paths
 
-The resource paths inside a Webjar (e.g. `/bootstrap/dist/js/bootstrap.esm.min.js`) are not standardized - that is there is no naming convention that allows you to guess the location of the ESM module inside a Webjar, or an NPM module, which amounts to the same thing. But there are some conventions in NPM modules that make it possible to automate: most modules have a `package.json` with a "module" fiel. E.g. from Bootstrap you can find the version and the module resource path:
+The resource paths inside a Webjar (e.g. `/bootstrap/dist/js/bootstrap.esm.min.js`) are not standardized - there is no naming convention that allows you to guess the location of the ESM module inside a Webjar, or an NPM module which amounts to the same thing. But there are some conventions in NPM modules that make it possible to automate: most modules have a `package.json` with a "module" field. E.g. from Bootstrap you can find the version and the module resource path:
 
 ```json
 {
@@ -227,7 +227,7 @@ CDNs like unpkg.com make use of this information, so you can use them when you k
 </script>
 ```
 
-It would be nice to be able to do the same with `/webjars` resource paths. That's what the `NpmVersionResolver` does in all the samples. You don't need it if you don't use Webjars and you can use a CDN, and you don't need it if you don't mind manually opening up all the `package.json` files and looking for the module path. But it's nice to not have to think about that. There's a https://github.com/spring-projects/spring-boot/issues/28715[feature request] asking for this to be included in Spring Boot. Another feature of the `NpmVersionResolver` is that it knows about the Webjars metadata, so it can resolve the version of each Webjar from the classpath, and we don't need that `webjars-locator-core` dependency (there's an https://github.com/spring-projects/spring-framework/issues/27619[open issue in Spring Framework] to add this feature).
+It would be nice to be able to do the same with `/webjars` resource paths. That's what the `NpmVersionResolver` in all the samples does. You don't need it if you don't use Webjars and you can use a CDN, and you don't need it if you don't mind manually opening up all the `package.json` files and looking for the module path. But it's nice to not have to think about that. There's a https://github.com/spring-projects/spring-boot/issues/28715[feature request] asking for this to be included in Spring Boot. Another feature of the `NpmVersionResolver` is that it knows about the Webjars metadata, so it can resolve the version of each Webjar from the classpath, and we don't need that `webjars-locator-core` dependency (there's an https://github.com/spring-projects/spring-framework/issues/27619[open issue in Spring Framework] to add this feature).
 
 So in the sample the import map is like this:
 
