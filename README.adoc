@@ -1409,4 +1409,348 @@ If we use that `<Content/>` component and the SSE loader from the sample above t
 
 ## Building and Bundling with Node.js
 
+Webjars are great, but sometimes you need something closer to the Javascript. One problem with Webjars for some people is the size of the jars - the Bootstrap jar is nearly 2MB, most of which will never be used at runtime - and Javascript tooling has a strong focus on reducing that overhead, by not packaging the whole NPM module in your app, and also by bundling assets together so they can be downloaded efficiently. There are also some issues with Java tooling - regarding https://github.com/sass/dart-sass[Sass] in particular, as we found with the https://github.com/spring-projects/spring-petclinic/pull/868[Petclinic recently], there is a lack of good tooling for build time. So maybe we should take a look at options for building with a Node.js toolchain.
+
+The first thing you will need is Node.js. There are many ways of obtaining it, and you can use whatever tools you want. We will show how to do it with the https://github.com/eirslett/frontend-maven-plugin[Frontend Plugin].
+
+### Install Node.js
+
+Let's add the plugin to the `turbo` sample. (The final result is the `nodejs` sample if you want to peek) in `pom.xml`:
+
+```xml
+<plugins>
+	<plugin>
+		<groupId>com.github.eirslett</groupId>
+		<artifactId>frontend-maven-plugin</artifactId>
+		<version>1.12.0</version>
+		<executions>
+			<execution>
+				<id>install-node-and-npm</id>
+				<goals>
+					<goal>install-node-and-npm</goal>
+				</goals>
+				<configuration>
+					<nodeVersion>v16.13.1</nodeVersion>
+				</configuration>
+			</execution>
+			<execution>
+				<id>npm-install</id>
+				<goals>
+					<goal>npm</goal>
+				</goals>
+				<configuration>
+					<arguments>install</arguments>
+				</configuration>
+			</execution>
+			<execution>
+				<id>npm-build</id>
+				<goals>
+					<goal>npm</goal>
+				</goals>
+				<configuration>
+					<arguments>run-script build</arguments>
+				</configuration>
+				<phase>generate-resources</phase>
+			</execution>
+		</executions>
+	</plugin>
+	...
+</plugins>
+```
+
+Here we have 3 executions: `install-node-and-npm` installs Node.js and NPM locally, `npm-install` runs `npm install` and `npm-build` runs a script to build the Javascript and possibly CSS. We will need a minimal `package.json` to run them all:
+
+```
+$ cat > package.json
+{
+	"scripts": { "build": "echo Building"}
+}
+```
+
+Then we can build
+
+```
+$ ./mvnw generate-resources
+...
+[INFO] Building
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.133 s
+[INFO] Finished at: 2021-12-16T07:46:42Z
+[INFO] ------------------------------------------------------------------------
+```
+
+You will see the result is a new directory:
+
+```
+$ ls -d node*
+node
+```
+
+It is useful to have an quick way to run `npm` from the command line, when it is installed locally like this. So once you have Node.js you can make it easy by creating a script locally:
+
+```
+$ cat > npm
+#!/bin/sh
+cd $(dirname $0)
+PATH="$PWD/node/":$PATH
+node "node/node_modules/npm/bin/npm-cli.js" "$@"
+```
+
+Make it executable and try it out:
+
+```
+$ chmod +x npm
+$ ./npm install
+
+up to date, audited 1 package in 211ms
+
+found 0 vulnerabilities
+```
+
+### Adding NPM Packages
+
+Now we are ready to build something, let's set up `package.json` with all the dependencies that we had in Webjars until now:
+
+```json
+{
+    "name": "js-demo",
+    "version": "0.0.1",
+    "dependencies": {
+        "@hotwired/stimulus": "^3.0.1",
+        "@hotwired/turbo": "^7.1.0",
+        "@popperjs/core": "^2.10.1",
+        "bootstrap": "^5.1.3",
+        "chart.js": "^3.6.0",
+        "@springio/utils": "^1.0.5",
+        "es-module-shims": "^1.3.0"
+    },
+    "scripts": {
+        "build": "echo Building"
+    }
+}
+```
+
+Running `./npm install` (or `./mvnw generate-resources`) will download those dependencies into `node_modules`:
+
+```
+$ ./npm install
+
+added 7 packages, and audited 8 packages in 8s
+
+2 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+$ ls node_modules/
+@hotwired  @popperjs  @springio  bootstrap  chart.js  es-module-shims
+```
+
+It's OK to add all the generated code to your `.gitignore` (i.e. `node/`, `node_modules/`, and `package-lock.json`).
+
+### Building with Rollup
+
+The good people who maintain Bootstrap use https://rollupjs.org/guide/en/[Rollup] to bundle their code, so that seems like a valid choice. Feel free to experiment with other tools. To get started with Rollup we will need some development dependencies in `package.json` and a new build script:
+
+```json
+{
+    ...
+    "devDependencies": {
+        "rollup": "^2.60.2",
+        "rollup-plugin-node-resolve": "^2.0.0"
+    },
+    "scripts": {
+        "build": "rollup -c"
+    }
+}
+```
+
+Rollup has its own config file, so here's one that will bundle a local Javascript source into the app and serve the Javsacript up from `/index.js` at runtime. This is `rollup.config.js`:
+
+```json
+import resolve from 'rollup-plugin-node-resolve';
+
+export default {
+	input: 'src/main/js/index.js',
+	output: {
+	  file: 'target/classes/static/index.js',
+	  format: 'esm'
+	},
+	plugins: [
+		resolve({
+			esm: true,
+			main: true,
+			browser: true
+		  })
+	]
+};
+```
+
+So if we move all the Javascript into `src/main/js/index.js` we would have this in the `<head>` of `index.html`:
+
+```html
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<title>Demo</title>
+	<meta name="description" content="" />
+	<meta name="viewport" content="width=device-width" />
+	<base href="/" />
+	<link rel="stylesheet" type="text/css" href="/npm/bootstrap/dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" type="text/css" href="/npm/@springio/utils/style.css" />
+</head>
+```
+
+and this at the end of the `<body>`:
+
+```html
+<script type="module">
+import '/index.js';
+</script>
+```
+
+We keep the CSS for now, and we can deal with a local build for that later. So in `index.js` we have all the `<script>` tag contents mushed together (or we could have split it up into modules and imported them):
+
+```javascript
+import 'bootstrap';
+import '@hotwired/turbo';
+import '@springio/utils';
+import { Application, Controller } from '@hotwired/stimulus';
+import { Chart, BarController, BarElement, PieController, ArcElement, LinearScale, ategoryScale, Title, Legend } from 'chart.js';
+
+Turbo.connectStreamSource(new EventSource("/stream"))
+window.Stimulus = Application.start();
+
+Chart.register(BarController, BarElement, PieController, ArcElement, LinearScale, CategoryScale, itle, Legend);
+
+Stimulus.register("hello", class extends Controller {
+	...
+});
+
+Stimulus.register("chart", class extends Controller {
+	...
+});
+```
+
+Then if we build and run the app it should all work, and Rollup creates a new `index.js` in `target/classes/static` where it will be picked up by the executable JAR. Because of the action of the "resolve" plugin in Rollup, the new `index.js` has all of the code that is needed to run our application. If any dependencies are packaged as a proper ESM bundle, Rollup will be able to "tree shake" the unused parts of them out. This works for Hotwired Stimulus at least, and most of the others get included wholesale, but the result is still only 750K (most of it Bootstrap):
+
+```
+$ ls -l target/classes/static/index.js 
+-rw-r--r-- 1 dsyer dsyer 768778 Dec 14 09:34 target/classes/static/index.js
+```
+
+The browser only has to download this once, which is an advantage when the server is HTTP 1.1 (HTTP 2 changes things a bit), and it means the executable JAR isn't bloated with stuff that never gets used. There are other plugin options with Rollup to compress the Javascript, but we'll leave it like that for now.
+
+### Building CSS with Sass
+
+So far we have used plain CSS bundled for us in some NPM libraries. Most applications need their own stylesheets and developers prefer to work with some form of templating library, and build time tooling to compile to CSS. The most prevalent such tool (but not the only one) is probably https://www.npmjs.com/package/sass[Sass]. Bootstrap uses it, and indeed packages its source files in the NPM bundle, so you can extend and adapt the Bootstrap styles to your own requirements.
+
+We can see how that works by building the CSS for our application, even if we don't do much customization. Start with some tooling dependencies in NPM:
+
+```
+$ ./npm install --save-dev rollup-plugin-scss rollup-plugin-postcss sass
+```
+
+which leads to some new entries in `package.json`:
+
+```json
+{
+    ...
+    "devDependencies": {
+        "rollup": "^2.60.2",
+        "rollup-plugin-node-resolve": "^2.0.0",
+        "rollup-plugin-postcss": "^0.2.0",
+        "rollup-plugin-scss": "^3.0.0",
+        "sass": "^1.44.0"
+    },
+    ...
+}
+```
+
+This means we can update our `rollup.config.js` to use the new tools:
+
+```javascript
+import resolve from "rollup-plugin-node-resolve";
+import scss from "rollup-plugin-scss";
+import postcss from "rollup-plugin-postcss";
+
+export default {
+  input: "src/main/js/index.js",
+  output: {
+    file: "target/classes/static/index.js",
+    format: "esm",
+  },
+  plugins: [
+    resolve({
+      esm: true,
+      main: true,
+      browser: true,
+    }),
+    scss(),
+    postcss(),
+  ],
+};
+```
+
+The CSS processors look in the same place as the main input file, so we can just create a `style.scss` in `src/main/js` and import the Bootstrap code:
+
+```css
+@import 'bootstrap/scss/bootstrap';
+```
+
+Customizations in SCSS would follow that. Then in `index.js` we add imports for this and the Spring utils library:
+
+```javascript
+import './style.scss';
+import '@springio/utils/style.css';
+
+...
+```
+
+and re-build. This will lead to a new `index.css` being created (the same file name as the main input Javascript) which we can then link to in the `<head>` of `index.html`:
+
+```html
+<head>
+	...
+	<link rel="stylesheet" type="text/css" href="index.css" />
+</head>
+```
+
+That's it. We have one `index.js` script driving all the Javascript and CSS for our Turbo sample, and we can now remove all remaining Webjars dependencies in the `pom.xml`.
+
 ## Bundling a React App with Node.js
+
+To finish up we can apply the same ideas to the `react-webjars` sample, removing Webjars and extracting Javascript and CSS into separate source files. This way, we can finally get rid of the slightly problematic `@babel/standalone`, for instance. We can start from the `react-webjars` sample and add the Frontend Plugin (or otherwise acquire Node.js), and create a `package.json` either manually or via the `npm` CLI. We will need the React dependencies, and also the build time tooling for Babel. Here's what we end up with:
+
+```json
+{
+    "name": "js-demo",
+    "version": "0.0.1",
+    "dependencies": {
+        "@popperjs/core": "^2.10.1",
+        "@springio/utils": "^1.0.4",
+        "bootstrap": "^5.1.3",
+        "chart.js": "^3.6.0",
+        "es-module-shims": "^1.3.0",
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.16.0",
+        "@babel/preset-env": "^7.16.0",
+        "@babel/preset-react": "^7.16.0",
+        "@rollup/plugin-babel": "^5.3.0",
+        "@rollup/plugin-node-resolve": "^13.0.6",
+        "postcss": "^8.4.5",
+        "rollup": "^2.60.2",
+        "rollup-plugin-postcss": "^4.0.2",
+        "rollup-plugin-scss": "^3.0.0",
+        "sass": "^1.44.0",
+        "styled-jsx": "^4.0.1"
+    },
+    "scripts": {
+        "build": "rollup -c"
+    }
+}
+```
