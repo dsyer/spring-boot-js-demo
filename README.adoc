@@ -757,7 +757,7 @@ We can have some fun adding other Javascript libraries, for instance some nice g
 </div>
 ```
 
-It has an empty `<canvas/>` that we can try and fill in with a bar chart using https://www.chartjs.org/[Chart.js]. In preparation for that we declared a controller called "chart" in the HTML above and labelled the target element for it with `data-*-target`. So let's start by adding Chart.js to the application. In `pom.xml`:
+It has an empty `<canvas/>` that we can fill in with a bar chart using https://www.chartjs.org/[Chart.js]. In preparation for that we declared a controller called "chart" in the HTML above and labelled the target element for it with `data-*-target`. So let's start by adding Chart.js to the application. In `pom.xml`:
 
 ```xml
 <dependency>
@@ -865,7 +865,7 @@ public Chart bar() {
 
 ## Code Block Hiding
 
-In Spring guides and reference documentation we often see blocks of code segmented by "type" (e.g. Maven vs. Gradle, or XML vs. Java). They are shown with one option active and the rest hidden, and if the user clicks on another option, not just the closest code snippets, but all the snippets in the whole document. For example if the user clilcks on "Gradle" all the code snippets that refer to "Gradle" are simultaneously activated. The Javascript that drives that feature exists in several forms, depending on which guide or project is using it, and one of those forms is as an NPM bundle https://www.npmjs.com/package/@springio/utils[@springio/utils]. It's not strictly an ESM module but we can still import it and see the feature working. Here's what it looks like in `index.html`:
+In Spring guides and reference documentation we often see blocks of code segmented by "type" (e.g. Maven vs. Gradle, or XML vs. Java). They are shown with one option active and the rest hidden, and if the user clicks on another option, not just the closest code snippets, but all the snippets in the whole document that match the click are revealed. For example if the user clicks on "Gradle" all the code snippets that refer to "Gradle" are simultaneously activated. The Javascript that drives that feature exists in several forms, depending on which guide or project is using it, and one of those forms is as an NPM bundle https://www.npmjs.com/package/@springio/utils[@springio/utils]. It's not strictly an ESM module but we can still import it and see the feature working. Here's what it looks like in `index.html`:
 
 ```html
 <script type="importmap">
@@ -907,7 +907,7 @@ The thing that drives the behaviour is the structure of the HTML, with one eleme
 
 ## Dynamic Content With Vue
 
-Vue is a lightweight Javascript library that you can use a little of or a lot. To get started we would need the dependency in `pom.xml`:
+Vue is a lightweight Javascript library that you can use a little of or a lot. To get started with Webjars we would need the dependency in `pom.xml`:
 
 ```xml
 <dependency>
@@ -917,7 +917,7 @@ Vue is a lightweight Javascript library that you can use a little of or a lot. T
 </dependency>
 ```
 
-and add it to the import map in `index.html`:
+and add it to the import map in `index.html` (using a manual resource path because the "module" in the NPM bundle points to something that doesn't work in a browser):
 
 ```html
 <script type="importmap">
@@ -1017,7 +1017,7 @@ new Vue(EventHandling).$mount("#message");
 
 The `created` hook is run as part of the Vue component lifecycle, so it's not necessarily going to be run precisely the same time as Stimulus did it, but it's close enough.
 
-We can also replace the chart picker with a a Vue, and then we can get rid of Stimulus entirely, just to see what it looks like.  Here's the chart tab (basically the same as before but without the controller decorations):
+We can also replace the chart picker with a Vue, and then we can get rid of Stimulus, just to see what it looks like.  Here's the chart tab (basically the same as before but without the controller decorations):
 
 ```html
 <div class="tab-pane fade" id="chart" role="tabpanel">
@@ -1134,10 +1134,9 @@ and some Javascript to populate it:
 
 ## Dynamic Content with React
 
-Most people who use React probably do more than just a bit of logic and end up with all of the layout and rendering in Javascript. You don't have to do that, and it's quite easy to use just a bit of React to get a feel for it. You could leave it at that and use it as a utility library, like with the other libraries in these samples, or you could evolve to a full Javascript client-side component approach.
+Most people who use React probably do more than just a bit of logic and end up with all of the layout and rendering in Javascript. You don't have to do that, and it's quite easy to use just a bit of React to get a feel for it. You could leave it at that and use it as a utility library, or you could evolve to a full Javascript client-side component approach.
 
-We can get started and try it out without changing too much. First the dependencies in `pom.xml`
- (the sample code will end up looking like the `react-webjars` sample if you want to peek):
+We can get started and try it out without changing too much. The sample code will end up looking like the `react-webjars` sample if you want to peek. First the dependencies in `pom.xml`:
 
 ```xml
 <dependency>
@@ -1226,7 +1225,7 @@ Most React apps use HTML embedded in the Javascript via a templating language ca
 </script>
 ```
 
-The component defines a custom element (the `<Hello/>`) that match the class name of the component, and conventionally starts with a capital letter. The `<Hello/>` fragment is an XJS template, and the component also has a `render()` function that returns an XJS template. Braces are used for interpolation, and `props` is a map including all the attributes of the custom element (so "name" in this case). Finally there is that `<script type="text/babel">` which is needed to transpile the XJS into actual Javascript that the browser will understand. The script above will do nothing until the browser is taught to recognize this script. We do that by importing another module:
+The component defines a custom element `<Hello/>` that match the class name of the component, and conventionally starts with a capital letter. The `<Hello/>` fragment is an XJS template, and the component also has a `render()` function that returns an XJS template. Braces are used for interpolation, and `props` is a map including all the attributes of the custom element (so "name" in this case). Finally there is that `<script type="text/babel">` which is needed to transpile the XJS into actual Javascript that the browser will understand. The script above will do nothing until the browser is taught to recognize this script. We do that by importing another module:
 
 ```html
 	<script type="importmap">
@@ -1326,7 +1325,7 @@ A `render()` method has to return a single element, so we have to wrap the conte
 
 ### Chart Chooser
 
-To migrate the rest of the Stimulus content to React we need to write a new chart chooser. So we can start with a an empty "chart" tab:
+To migrate the rest of the Stimulus content to React we need to write a new chart chooser. So we can start with an empty "chart" tab:
 
 ```html
 <div class="tab-pane fade" id="chart" role="tabpanel" data-controller="chart">
@@ -1346,7 +1345,7 @@ ReactDOM.render(
 );
 ```
 
-where `ChartChooser` is a list of buttons:
+`ChartChooser` is a list of buttons encapsulated in a component:
 
 ```javascript
 class ChartChooser extends React.Component {
@@ -1390,7 +1389,7 @@ We also need the chart module setup from the Vue sample (it won't work in a `<sc
 </script>
 ```
 
-Chart.js isn't actually an ESM module, so you can't import it into a Babel script. We import it in a separate module, and `Chart` has to be defined as a global so we can still use it in our React component.
+Chart.js isn't shipped in a form you can import into a Babel script. We import it in a separate module, and `Chart` has to be defined as a global so we can still use it in our React component.
 
 ### Server Side Fragments
 
@@ -1411,7 +1410,7 @@ ReactDOM.render(
 );
 ```
 
-and then we can implement the `<Content/>` as a component that fetches HTML from the `/test` endpoint:
+Then we can implement the `<Content/>` as a component that fetches HTML from the `/test` endpoint:
 
 ```javascript
 class Content extends React.Component {
@@ -1439,7 +1438,7 @@ class Content extends React.Component {
 
 The `dangerouslySetInnerHTML` attribute is delibrately named by React to discourage people from using it with content that is collected directly from users (XSS issues). But we get that content from the server so we can put our trust in the XSS protection there and ignore the warning.
 
-If we use that `<Content/>` component and the SSE loader from the sample above then we can get rid of Hotwired altogether from this sample as well.
+If we use that `<Content/>` component and the SSE loader from the sample above then we can get rid of Hotwired altogether from this sample.
 
 ## Building and Bundling with Node.js
 
@@ -1585,7 +1584,7 @@ It's OK to add all the downloaded and generated code to your `.gitignore` (i.e. 
 
 ### Building with Rollup
 
-The good people who maintain Bootstrap use https://rollupjs.org/guide/en/[Rollup] to bundle their code, so that seems like a decent choice. One thing it does really well is "tree shaking" to reduce the amount of Javscript you need to ship with your application. Feel free to experiment with other tools. To get started with Rollup we will need some development dependencies in `package.json` and a new build script:
+The Bootstrap maintainers use https://rollupjs.org/guide/en/[Rollup] to bundle their code, so that seems like a decent choice. One thing it does really well is "tree shaking" to reduce the amount of Javscript you need to ship with your application. Feel free to experiment with other tools. To get started with Rollup we will need some development dependencies in `package.json` and a new build script:
 
 ```json
 {
