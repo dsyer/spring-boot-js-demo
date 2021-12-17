@@ -43,6 +43,8 @@ $ java -jar target/js-demo-htmx-0.0.1.jar
 2021-12-08 08:50:31.841  INFO 2385363 --- [           main] com.example.jsdemo.JsDemoApplication     : Started JsDemoApplication in 0.97 seconds (JVM running for 1.209)
 ```
 
+The project works well in https://docs.github.com/en/codespaces[Codespaces] and was developed mostly locally with https://code.visualstudio.com/docs/languages/java[VSCode]. Feel free to use whatever IDE you prefer though, they should all work fine.
+
 ## Narrowing the Choices
 
 Browser application development is a huge landscape of ever-changing options and choices. It would be impossible to present all those options in one coherent picture, so we have intentionally limited the scope of tools and frameworks we look at. We start with a bias of wanting to find something that works with a light touch, or is at least incrementally adoptable. There is also the previously mentioned bias towards libraries that work well with server-side renderers - those that deal with fragments and subtrees of HTML. Also, we have used Javascript https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules[ESM] wherever possible, since most browsers now support that. However, most libraries that publish a module to `import` also have an equivalent bundle you can `require`, so you can always stick to that if you prefer.
