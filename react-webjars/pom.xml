@@ -15,13 +15,8 @@
 	<properties>
 		<repackage.classifier/>
 		<java.version>11</java.version>
-		<native.buildtools.version>0.9.6</native.buildtools.version>
 	</properties>
 	<dependencies>
-		<dependency>
-			<groupId>org.springframework.experimental</groupId>
-			<artifactId>spring-native</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
@@ -79,73 +74,7 @@
 	</dependencies>
 
 	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-maven-plugin</artifactId>
-					<configuration>
-						<classifier>${repackage.classifier}</classifier>
-						<image>
-							<env>
-								<BP_NATIVE_IMAGE>true</BP_NATIVE_IMAGE>
-							</env>
-							<pullPolicy>IF_NOT_PRESENT</pullPolicy>
-						</image>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.springframework.experimental</groupId>
-					<artifactId>spring-aot-maven-plugin</artifactId>
-					<version>0.11.0</version>
-					<executions>
-						<!--
-					<execution>
-						<id>test-generate</id>
-						<goals>
-							<goal>test-generate</goal>
-						</goals>
-					</execution>
-					-->
-						<execution>
-							<id>generate</id>
-							<goals>
-								<goal>generate</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
-				<plugin>
-					<groupId>org.graalvm.buildtools</groupId>
-					<artifactId>native-maven-plugin</artifactId>
-					<version>${native.buildtools.version}</version>
-					<executions>
-						<execution>
-							<goals>
-								<goal>build</goal>
-							</goals>
-							<phase>package</phase>
-						</execution>
-						<!--execution>
-							<id>test</id>
-							<goals>
-								<goal>test</goal>
-							</goals>
-							<phase>test</phase>
-						</execution-->
-					</executions>
-				</plugin>
-			</plugins>
-		</pluginManagement>
 		<plugins>
-			<plugin>
-				<groupId>org.springframework.experimental</groupId>
-				<artifactId>spring-aot-maven-plugin</artifactId>
-				<configuration>
-					<removeYamlSupport>true</removeYamlSupport>
-					<removeSpelSupport>true</removeSpelSupport>
-				</configuration>
-			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
@@ -205,43 +134,5 @@
 			</releases>
 		</repository>
 	</repositories>
-
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.springframework.experimental</groupId>
-				<artifactId>spring-native</artifactId>
-				<version>0.11.0</version>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
-
-	<profiles>
-		<!-- Enable building a native image using a local installation of native-image with GraalVM native-maven-plugin -->
-		<profile>
-			<id>native</id>
-			<properties>
-				<!-- Avoid a clash between Spring Boot repackaging and native-maven-plugin -->
-				<repackage.classifier>exec</repackage.classifier>
-			</properties>
-			<dependencies>
-				<!-- Won't be needed as of JUnit 5.8, see https://github.com/junit-team/junit5/issues/2619 -->
-				<dependency>
-					<groupId>org.graalvm.buildtools</groupId>
-					<artifactId>junit-platform-native</artifactId>
-					<version>${native.buildtools.version}</version>
-					<scope>test</scope>
-				</dependency>
-			</dependencies>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.graalvm.buildtools</groupId>
-						<artifactId>native-maven-plugin</artifactId>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
 
 </project>

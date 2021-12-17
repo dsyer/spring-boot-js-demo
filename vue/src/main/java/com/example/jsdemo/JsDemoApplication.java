@@ -6,22 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.samskivert.mustache.Mustache.Compiler;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.mustache.MustacheProperties;
-import org.springframework.boot.web.reactive.result.view.MustacheViewResolver;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.Ordered;
 import org.springframework.http.MediaType;
-import org.springframework.nativex.hint.NativeHint;
-import org.springframework.nativex.hint.ResourceHint;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.reactive.config.ResourceHandlerRegistry;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
@@ -32,8 +22,6 @@ import reactor.core.publisher.Mono;
 
 @SpringBootApplication
 @Controller
-@NativeHint(resources = @ResourceHint(patterns = { "^META-INF/resources/webjars/.*",
-		"^META-INF/maven/org.webjars.npm/.*/pom.properties$" }))
 public class JsDemoApplication {
 
 	private int count = 0;

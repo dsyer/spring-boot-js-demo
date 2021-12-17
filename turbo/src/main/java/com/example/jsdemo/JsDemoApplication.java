@@ -16,10 +16,7 @@ import org.springframework.boot.web.reactive.result.view.MustacheViewResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
 import org.springframework.http.MediaType;
-import org.springframework.nativex.hint.NativeHint;
-import org.springframework.nativex.hint.ResourceHint;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -32,8 +29,6 @@ import reactor.core.publisher.Mono;
 
 @SpringBootApplication
 @Controller
-@NativeHint(resources = @ResourceHint(patterns = { "^META-INF/resources/webjars/.*",
-		"^META-INF/maven/org.webjars.npm/.*/pom.properties$" }))
 public class JsDemoApplication {
 
 	private int count = 0;
