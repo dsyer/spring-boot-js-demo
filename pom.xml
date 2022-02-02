@@ -15,6 +15,7 @@
 
 	<modules>
 		<module>htmx</module>
+		<module>lit</module>
 		<module>turbo</module>
 		<module>vue</module>
 		<module>react-webjars</module>

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<title>Demo</title>
+	<meta name="description" content="" />
+	<meta name="viewport" content="width=device-width" />
+	<base href="/" />
+	<link rel="stylesheet" type="text/css" href="/npm/bootstrap/dist/css/bootstrap.min.css" />
+	<script async src="/npm/es-module-shims"></script>
+	<script type="importmap">
+		{
+			"imports": {
+				"bootstrap": "/npm/bootstrap",
+				"@popperjs/core": "/npm/@popperjs/core",
+				"lit": "/npm/lit",
+				"@lit/reactive-element": "/npm/@lit/reactive-element",
+				"lit-html": "/npm/lit-html",
+				"lit-element/lit-element.js": "/npm/lit-element/lit-element.js"
+			}
+		}
+	</script>
+	<script type="module">
+		import 'bootstrap';
+	</script>
+</head>
+
+<body>
+	<header>
+		<h1>Demo</h1>
+	</header>
+	<main>
+		<br />
+		<div class="container">
+			<authenticated-user></authenticated-user>
+			<simple-greeting></simple-greeting>
+		</div>
+	</main>
+	<script type="module">
+		import { html, css, LitElement } from 'lit';
+		export class Authenticated extends LitElement {
+			static properties = {
+				user: { type: String }
+			};
+			constructor() {
+				super();
+				this.user = 'Unauthenticated';
+				this.grab()
+			}
+			grab = async function () {
+				await fetch("/user")
+					.then(response => response.text())
+					.then(value => this.user = value);
+			}
+			render() {
+				return html`
+				<div id="auth">
+					${this.user}
+				</div>
+				`;
+			}
+		}
+		export class SimpleGreeting extends LitElement {
+			static properties = {
+				greeting: { type: String },
+				name: { type: String }
+			};
+
+			constructor() {
+				super();
+				this.greeting = '';
+				this.name = '';
+			}
+
+			greet = async function () {
+				await fetch("/greet", { method: 'POST', body: new URLSearchParams([["value", this.name]]) })
+					.then(response => response.text())
+					.then(value => { this.greeting = value; this.name = ''; });
+			}
+
+			copy = function (element) {
+				this.name = element.target.value;
+			}
+
+			render() {
+				return html`
+					<div id="greeting">${this.greeting}</div>
+					<input id="name" name="value" type="text" .value="${this.name}" @change=${this.copy}/>
+					<button class="btn btn-primary" @click=${this.greet}>Greet</button>
+				`;
+			}
+		}
+		customElements.define('authenticated-user', Authenticated);
+		customElements.define('simple-greeting', SimpleGreeting);
+	</script>
+</body>
+
+</html>
