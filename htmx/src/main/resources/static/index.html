@@ -20,8 +20,12 @@
 		}
 	</script>
 	<script type="module">
-		import 'bootstrap';
+		import { Toast } from 'bootstrap';
 		import 'htmx';
+		htmx.on("notice", (e) => {
+			document.getElementById("toast-body").innerText = e.detail.value;
+			new Toast(document.getElementById("toast"), { delay: 2000 }).show();
+		});
 	</script>
 </head>
 
@@ -35,7 +39,7 @@
 		</nav>
 	</header>
 	<main>
-		<br/>
+		<br />
 		<div class="tab-content">
 			<div class="tab-pane fade show active" id="message" role="tabpanel">
 				<div class="container">
@@ -44,7 +48,8 @@
 					</div>
 					<div id="greeting">Placeholder</div>
 					<input id="name" name="value" type="text" />
-					<button class="btn btn-primary" hx-post="/greet" hx-target="#greeting" hx-include="#name">Greet</button>
+					<button class="btn btn-primary" hx-post="/greet" hx-target="#greeting"
+						hx-include="#name">Greet</button>
 				</div>
 			</div>
 			<div class="tab-pane fade" id="stream" role="tabpanel">
@@ -57,6 +62,16 @@
 					<div id="hello"></div>
 					<div id="world"></div>
 					<button class="btn btn-primary" hx-get="/test" hx-swap="none">Fetch</button>
+					<button class="btn btn-primary" hx-get="/notify" hx-swap="none">Notify!</button>
+				</div>
+			</div>
+		</div>
+		<div class="position-fixed top-0 end-0 p-3">
+			<div id="toast" class="toast align-items-center text-white bg-success border-0" role="alert">
+				<div class="d-flex">
+					<div id="toast-body" class="toast-body"></div>
+					<button type="button" class="btn-close btn-close-white me-2 m-auto"
+						data-bs-dismiss="toast"></button>
 				</div>
 			</div>
 		</div>

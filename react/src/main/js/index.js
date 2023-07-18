@@ -9,6 +9,8 @@ Chart.register(BarController, BarElement, PieController, ArcElement, LinearScale
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 class ChartChooser extends React.Component {
 	constructor(props) {
@@ -110,6 +112,9 @@ class Content extends React.Component {
 		this.state = { html: '' };
 		this.fetch = this.fetch.bind(this);
 	};
+	notify(){
+		toast("Wow so easy!");
+	}
 	fetch() {
 		let hello = this;
 		fetch("/test").then(response => {
@@ -122,6 +127,8 @@ class Content extends React.Component {
 		return <div>
 			<div dangerouslySetInnerHTML={{ __html: this.state.html }}></div>
 			<button className="btn btn-primary" onClick={this.fetch}>Fetch</button>
+			<button className="btn btn-primary" onClick={this.notify}>Notify!</button>
+			<ToastContainer />
 		</div>;
 	}
 }

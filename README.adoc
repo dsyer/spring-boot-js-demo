@@ -31,7 +31,7 @@ $ java -jar target/js-demo-htmx-0.0.1.jar
  \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
   '  |____| .__|_| |_|_| |_\__, | / / / /
  =========|_|==============|___/=/_/_/_/
- :: Spring Boot ::            (v2.6.0)
+ :: Spring Boot ::            (v3.1.1)
 
 2021-12-08 08:50:30.517  INFO 2385363 --- [           main] com.example.jsdemo.JsDemoApplication     : Starting JsDemoApplication using Java 11.0.7 on tower with PID 2385363 (/home/dsyer/dev/demo/workspace-daily/js-demo/target/classes started by dsyer in /home/dsyer/dev/demo/workspace-daily/js-demo)
 2021-12-08 08:50:30.519  INFO 2385363 --- [           main] com.example.jsdemo.JsDemoApplication     : No active profile set, falling back to default profiles: default

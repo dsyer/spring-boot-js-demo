@@ -24,8 +24,6 @@ import reactor.core.publisher.Mono;
 @Controller
 public class JsDemoApplication {
 
-	private int count = 0;
-
 	@GetMapping("/user")
 	@ResponseBody
 	public Map<String, Object> user() {

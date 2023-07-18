@@ -1,21 +1,32 @@
 package com.example.jsdemo;
 
 import java.time.Duration;
+import java.util.Map;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.result.view.Rendering;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import reactor.core.publisher.Flux;
 
 @SpringBootApplication
 @RestController
 public class JsDemoApplication {
+
+	private final ObjectMapper mapper;
+
+	public JsDemoApplication(ObjectMapper objectMapper) {
+		this.mapper = objectMapper;
+	}
 
 	@GetMapping("/user")
 	public String user() {
@@ -30,6 +41,12 @@ public class JsDemoApplication {
 	@GetMapping("/time")
 	public String time() {
 		return "Time: " + System.currentTimeMillis();
+	}
+
+	@GetMapping("/notify")
+	public ResponseEntity<Void> notification() throws Exception {
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.header("HX-Trigger", mapper.writeValueAsString(Map.of("notice", "Notification"))).build();
 	}
 
 	@GetMapping(path = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
