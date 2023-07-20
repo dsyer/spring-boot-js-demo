@@ -357,7 +357,7 @@ public class JsDemoApplication {
 }
 ```
 
-Spring will bind the "value" parameter in the incoming request to the `Greeting` and we convert it to text which is then injected in the `<div id="greeting"/>` on the page. You can use HTMX to inject plain text like this, or whole fragments of HTML. Or you can append (or prepend) to a list of existing elements, like rows in a table, or items in a list.
+Spring will bind the "value" parameter in the incoming request to the `Greeting` and we convert it to text which is then injected in the `<div id="greeting"/>` on the page. You can use HTMX to inject plain text like this, or whole fragments of HTML. Or you can append (or prepend) to a list of existing elements, like rows in a table, or items in a list. You can also use a `<form>` in place of the container `<div>` above, and then you don't need `hx-include` (HTMX just sends all the form data).
 
 Here's another thing you can do:
 
@@ -373,6 +373,33 @@ Here's another thing you can do:
 This does a GET to `/user` when the page loads and swaps the content of the element. The sample app has this endpoint and it returns "Fred" so you see it rendered like this:
 
 image::images/user.png[]
+
+### HTMX Triggers
+
+In addition to page event (like "load" in the example above), the backend can send a response header `Hx-Trigger` to fire additional events in the client. In this way you can add nice pop-up notifications, or update other parts of the page. For example, you might add this to the backend:
+
+```java
+@GetMapping("/notify")
+public ResponseEntity<Void> notification() throws Exception {
+	return ResponseEntity.status(HttpStatus.CREATED)
+			.header("HX-Trigger", mapper.writeValueAsString(Map.of("notice", "Notification"))).build();
+}
+```
+
+The `mapper` is a Jackson `ObjectMapper` because the `HX-Trigger` header is encoded in JSON (or just a plain string which is the name of the event to fire). When you `hx-get="/notify"` the client will fire an event which you can listen for and handle in Javascript. For example:
+
+```javascript
+<script type="module">
+	import { Toast } from 'bootstrap';
+	import 'htmx';
+	htmx.on("notice", (e) => {
+		document.getElementById("toast-body").innerText = e.detail.value;
+		new Toast(document.getElementById("toast"), { delay: 2000 }).show();
+	});
+</script>
+```
+
+The example above used a `Void` response body, but more commonly you'll want to return some data, like a view to render and HTML template and replace some content in the page.
 
 ### SSE Streams
 
@@ -443,7 +470,7 @@ data:<div>Index: 2, Time: 1639474500435</div>
 ...
 ```
 
-The HTML comes from a template:
+The HTML comes from a template `time.mustache` in `src/main/resources/templates`:
 
 ```html
 <div>Index: {{value}}, Time: {{time}}</div>
