@@ -1,6 +1,7 @@
 package com.example.jsdemo;
 
 import java.time.Duration;
+import java.util.Map;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -32,16 +33,9 @@ public class JsDemoApplication {
 		return "Time: " + System.currentTimeMillis();
 	}
 
-	@GetMapping(path = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-	public Flux<Rendering> stream() {
-		return Flux.interval(Duration.ofSeconds(5)).map(value -> Rendering.view("time").modelAttribute("value", value)
-				.modelAttribute("time", System.currentTimeMillis()).build());
-	}
-
 	@GetMapping(path = "/test")
-	public Flux<Rendering> test() {
-		return Flux.just(Rendering.view("test").modelAttribute("id", "hello").modelAttribute("value", "Hello").build(),
-				Rendering.view("test").modelAttribute("id", "world").modelAttribute("value", "World").build());
+	public Map<String, Object> test() {
+		return Map.of("hello", "Hello", "world", "World");
 	}
 
 	public static void main(String[] args) {

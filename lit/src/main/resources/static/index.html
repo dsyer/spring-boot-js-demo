@@ -30,12 +30,23 @@
 <body>
 	<header>
 		<h1>Demo</h1>
+		<nav class="nav nav-tabs">
+			<a class="nav-link active" data-bs-toggle="tab" data-bs-target="#message" href="#">Message</a>
+			<a class="nav-link" data-bs-toggle="tab" data-bs-target="#test" href="#">Test</a>
+		</nav>
 	</header>
 	<main>
 		<br />
-		<div class="container">
-			<authenticated-user></authenticated-user>
-			<simple-greeting></simple-greeting>
+		<div class="tab-content">
+			<div class="tab-pane fade show active" id="message" role="tabpanel">
+				<authenticated-user></authenticated-user>
+				<simple-greeting></simple-greeting>
+			</div>
+			<div class="tab-pane fade" id="test" role="tabpanel">
+				<div class="container">
+					<hello-world></hello-world>
+				</div>
+			</div>
 		</div>
 	</main>
 	<script type="module">
@@ -86,14 +97,43 @@
 
 			render() {
 				return html`
+					<link rel="stylesheet" type="text/css" href="/npm/bootstrap/dist/css/bootstrap.min.css"/>
 					<div id="greeting">${this.greeting}</div>
 					<input id="name" name="value" type="text" .value="${this.name}" @change=${this.copy}/>
 					<button class="btn btn-primary" @click=${this.greet}>Greet</button>
 				`;
 			}
 		}
+		export class HelloWorld extends LitElement {
+			static properties = {
+				hello: { type: String },
+				world: { type: String }
+			};
+
+			constructor() {
+				super();
+				this.hello = '';
+				this.world = '';
+			}
+
+			fetch = async function () {
+				await fetch("/test")
+					.then(response => response.json())
+					.then(value => { this.hello = value.hello; this.world = value.world; });
+			}
+
+			render() {
+				return html`
+					<link rel="stylesheet" type="text/css" href="/npm/bootstrap/dist/css/bootstrap.min.css"/>
+					<div id="hello">${this.hello}</div>
+					<div id="world">${this.world}</div>
+					<button class="btn btn-primary" @click=${this.fetch}>Fetch</button>
+				`;
+			}
+		}
 		customElements.define('authenticated-user', Authenticated);
 		customElements.define('simple-greeting', SimpleGreeting);
+		customElements.define('hello-world', HelloWorld)
 	</script>
 </body>
 
