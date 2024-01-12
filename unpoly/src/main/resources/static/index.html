@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<title>Demo</title>
+	<meta name="description" content="" />
+	<meta name="viewport" content="width=device-width" />
+	<base href="/" />
+	<link rel="stylesheet" type="text/css" href="/npm/bootstrap/dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" type="text/css" href="/npm/unpoly/unpoly.css" />
+	<script async src="/npm/bootstrap/dist/js/bootstrap.min.js"></script>
+	<script src="/npm/unpoly"></script>
+</head>
+
+<body>
+	<header>
+		<h1>Demo</h1>
+		<nav class="nav nav-tabs">
+			<a class="nav-link active" data-bs-toggle="tab" data-bs-target="#message" href="#">Message</a>
+			<a class="nav-link" data-bs-toggle="tab" data-bs-target="#stream" href="#">Stream</a>
+			<a class="nav-link" data-bs-toggle="tab" data-bs-target="#test" href="#">Test</a>
+		</nav>
+	</header>
+	<main>
+		<br />
+		<div class="tab-content">
+			<div class="tab-pane fade show active" id="message" role="tabpanel">
+				<form class="container" method="post" action="/greet" up-target="#greeting">
+					<div id="auth" up-poll up-source="/user" up-interval="10">
+						Unauthenticated
+					</div>
+					<div id="greeting">Placeholder</div>
+					<input id="name" name="value" type="text" />
+					<button class="btn btn-primary" type="submit">Greet</button>
+				</form>
+			</div>
+			<div class="tab-pane fade" id="stream" role="tabpanel">
+				<div class="container">
+					<div id="load" up-poll up-interval="5000" up-source="/stream"></div>
+				</div>
+			</div>
+			<div class="tab-pane fade" id="test" role="tabpanel">
+				<div class="container">
+					<div id="hello"></div>
+					<div id="world"></div>
+					<button class="btn btn-primary" up-href="/test" up-target="#hello,#world">Fetch</button>
+				</div>
+			</div>
+		</div>
+	</main>
+</body>
+
+</html>
