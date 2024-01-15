@@ -8,11 +8,7 @@ import java.util.Map;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.mustache.MustacheProperties;
-import org.springframework.boot.web.reactive.result.view.MustacheViewResolver;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.Ordered;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,8 +17,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.reactive.config.ResourceHandlerRegistry;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.reactive.result.view.Rendering;
-
-import com.samskivert.mustache.Mustache.Compiler;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -91,21 +85,6 @@ public class JsDemoApplication {
 		public void setValue(String value) {
 			this.value = value;
 		}
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	MustacheViewResolver mustacheViewResolver(Compiler mustacheCompiler, MustacheProperties mustache) {
-		MustacheViewResolver resolver = new MustacheViewResolver(mustacheCompiler);
-		resolver.setPrefix(mustache.getPrefix());
-		resolver.setSuffix(mustache.getSuffix());
-		resolver.setViewNames(mustache.getViewNames());
-		resolver.setRequestContextAttribute(mustache.getRequestContextAttribute());
-		resolver.setCharset(mustache.getCharsetName());
-		resolver.setOrder(Ordered.LOWEST_PRECEDENCE - 10);
-		resolver.setSupportedMediaTypes(
-				Arrays.asList(MediaType.TEXT_HTML, MediaType.valueOf("text/vnd.turbo-stream.html")));
-		return resolver;
 	}
 
 	@Bean
