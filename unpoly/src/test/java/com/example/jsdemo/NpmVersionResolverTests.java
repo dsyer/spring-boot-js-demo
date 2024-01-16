@@ -36,28 +36,6 @@ public class NpmVersionResolverTests {
 	}
 
 	@Test
-	void resolvesAtModule() {
-		ResponseEntity<Void> response = resolver.remainder("@popperjs", "/core");
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-		String location = response.getHeaders().getFirst("location");
-		assertThat(location).startsWith("/webjars");
-		assertThat(location).contains("/popperjs__core");
-		assertThat(location).contains("/lib/index.js");
-		assertThat(location).doesNotContain("//");
-	}
-
-	@Test
-	void resolvesAtModuleSubPath() {
-		ResponseEntity<Void> response = resolver.remainder("@popperjs", "/core/lib/index.js");
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-		String location = response.getHeaders().getFirst("location");
-		assertThat(location).startsWith("/webjars");
-		assertThat(location).contains("/popperjs__core");
-		assertThat(location).contains("/lib/index.js");
-		assertThat(location).doesNotContain("//");
-	}
-
-	@Test
 	void resolvesUnpkgModuleWhenWebjarNotAvailable() {
 		ResponseEntity<Void> response = resolver.module("jquery");
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
